@@ -22,7 +22,6 @@ function initEnhancements(){
         el.addEventListener('mouseenter',()=>{try{gsap.to(ring,{scale:1.6,duration:.2}); gsap.to(dot,{scale:1.8,duration:.2})}catch{}});
         el.addEventListener('mouseleave',()=>{try{gsap.to(ring,{scale:1,duration:.2}); gsap.to(dot,{scale:1,duration:.2})}catch{}});
       });
-  grid.appendChild(frag3);
     }catch{}
     // tilt
     try{
@@ -326,6 +325,7 @@ async function renderCompare(){
     el.addEventListener('click',()=>{render(d); document.getElementById('searchInput').value=d.meta.name; window.scrollTo({top:0,behavior:'smooth'})});
     frag3.appendChild(el);
   });
+  grid.appendChild(frag3);
 }
 
 function render(data){
