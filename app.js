@@ -483,7 +483,7 @@ function render(data){
 
 function updateMap(lat,lon, name){
   if(!mapObj){
-    mapObj=L.map('map',{zoomControl:false, attributionControl:false}).setView([lat,lon],9);
+    mapObj=L.map('map',{zoomControl:false, attributionControl:false}).setView([lat,lon],7);
     // OSM — безкоштовно, без ключа
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19, attribution:'© OpenStreetMap | RainViewer'}).addTo(mapObj);
     // затемнити OSM під темний дизайн
@@ -492,7 +492,7 @@ function updateMap(lat,lon, name){
       if(pane) pane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)';
     },120);
     L.control.zoom({position:'bottomright'}).addTo(mapObj);
-    // RainViewer — безкоштовний радар опадів, без ключа
+    // RainViewer — безкоштовний радар опадів, без ключа (maxNativeZoom 7 щоб не було "Zoom Level Not Supported")
     fetch('https://api.rainviewer.com/public/weather-maps.json')
       .then(r=>r.json())
       .then(data=>{
@@ -501,12 +501,12 @@ function updateMap(lat,lon, name){
           if(!past || !past.length) return;
           const last=past[past.length-1];
           const time=last.time;
-          const radarLayer=L.tileLayer(`https://tilecache.rainviewer.com/v2/radar/${time}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:0.62, maxZoom:12, attribution:'RainViewer'});
+          const radarLayer=L.tileLayer(`https://tilecache.rainviewer.com/v2/radar/${time}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:0.62, maxZoom:19, maxNativeZoom:7, attribution:'RainViewer'});
           radarLayer.addTo(mapObj);
           mapObj._radarLayer=radarLayer;
         }catch(e){ console.warn('rainviewer',e); }
       }).catch(e=>console.warn('rainviewer fetch',e));
-  } else mapObj.setView([lat,lon],9);
+  } else mapObj.setView([lat,lon],7);
   if(marker) mapObj.removeLayer(marker);
   marker=L.marker([lat,lon]).addTo(mapObj).bindPopup(`<b>${name}</b>`);
   document.getElementById('mapUpdated').textContent=new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
