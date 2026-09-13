@@ -1,9 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEBO v3 — HYPER</title>
+<title>NEBO v4 — HYPER+</title>
+<link rel="manifest" href='data:application/json,{"name":"NEBO HYPER","short_name":"NEBO","display":"standalone","background_color":"%2305070a","theme_color":"%23ff3b82","start_url":".","icons":[]}'>
+<meta name="theme-color" content="#05070a">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -104,7 +107,7 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
   </div>
   <div class="relative text-center w-full max-w-[900px] overflow-visible">
     <div class="font-display font-bold text-[13vw] md:text-[7.5vw] leading-none tracking-[-0.05em] flex items-baseline justify-center gap-2 md:gap-3 overflow-visible px-2">NEBO<span class="font-serif italic font-light gradient-text pr-4 md:pr-8">hyper</span></div>
-    <div class="mt-2 font-display text-[11px] tracking-[0.42em] text-white/35">V3 • HYPER EDITION • 2026</div>
+    <div class="mt-2 font-display text-[11px] tracking-[0.42em] text-white/35">V4 • HYPER+ EDITION • 2026</div>
     <div class="mt-8 inline-flex items-center gap-3 glass rounded-full px-5 py-2 text-xs tracking-[0.22em] text-white/70">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ЗАВАНТАЖУЄМО НЕБО
       <span id="loaderPct" class="font-bold text-white">00%</span>
@@ -117,12 +120,13 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
   <div class="max-w-[1440px] mx-auto px-4 md:px-6 py-4 flex items-center gap-3 md:gap-5">
     <a href="#" class="flex items-center gap-3 shrink-0">
       <span class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white shadow-lg relative overflow-hidden" style="background:linear-gradient(135deg,#ff8a5b,#ff3b82,#8b5cf6)"><span class="absolute inset-0 bg-white/15 opacity-0 hover:opacity-100 transition"></span>◐</span>
-      <span class="hidden md:block leading-none"><span class="font-display font-bold text-lg tracking-tight">NEBO</span><span class="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-white text-black">v3</span><span class="block text-[10px] tracking-[0.22em] text-white/50 -mt-0.5">HYPER • ПОГОДА</span></span>
+      <span class="hidden md:block leading-none"><span class="font-display font-bold text-lg tracking-tight">NEBO</span><span class="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-white text-black">v4</span><span class="block text-[10px] tracking-[0.22em] text-white/50 -mt-0.5">HYPER • ПОГОДА</span></span>
     </a>
     <div class="flex-1 relative max-w-[640px] mx-auto">
       <div class="relative glass rounded-full flex items-center gap-2 px-2 py-2 shadow-xl">
         <span class="hidden md:flex w-10 h-10 rounded-full bg-white text-black items-center justify-center shrink-0">⌕</span>
         <input id="searchInput" placeholder="Пошук міста — Київ, Львів, Paris..." class="flex-1 bg-transparent outline-none text-sm md:text-[15px] placeholder:text-white/40 px-2 md:px-0">
+        <button id="voiceBtn" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white hover:text-black flex items-center justify-center shrink-0 transition" title="Голосовий пошук">🎤</button>
         <button id="searchBtn" class="shrink-0 px-5 md:px-6 py-2.5 rounded-full font-bold text-sm text-white shadow" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">Знайти</button>
       </div>
       <div id="searchResults" class="absolute top-full mt-3 w-full glass-strong rounded-[20px] overflow-hidden hidden z-50 shadow-2xl"></div>
@@ -330,10 +334,10 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
 <footer class="border-t border-white/10 mt-4 py-10">
   <div class="max-w-[1440px] mx-auto px-4 md:px-6">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-      <div class="flex items-center gap-3"><span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow" style="background:linear-gradient(135deg,#ff8a5b,#8b5cf6)">◐</span><span class="font-display font-bold">NEBO v3 HYPER</span><span class="text-white/40">© 2026 • Дані Open-Meteo</span></div>
+      <div class="flex items-center gap-3"><span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold shadow" style="background:linear-gradient(135deg,#ff8a5b,#8b5cf6)">◐</span><span class="font-display font-bold">NEBO v4 HYPER+</span><span class="text-white/40">© 2026 • Дані Open-Meteo</span></div>
       <div class="flex gap-6 text-white/60"><a href="#" class="hover:text-white">API</a><a href="#" class="hover:text-white">GitHub</a><a href="#" class="hover:text-white">Telegram</a></div>
     </div>
-    <div class="mt-10 font-display font-bold text-[12vw] leading-none tracking-[-0.06em] text-center select-none pointer-events-none" style="-webkit-text-stroke:1px rgba(255,255,255,.08); color:transparent">NEBO HYPER</div>
+    <div class="mt-10 font-display font-bold text-[12vw] leading-none tracking-[-0.06em] text-center select-none pointer-events-none" style="-webkit-text-stroke:1px rgba(255,255,255,.08); color:transparent">NEBO HYPER+</div>
   </div>
 </footer>
 
@@ -868,6 +872,39 @@ document.getElementById('favBtn').addEventListener('click',()=>{
   if(!favs.find(f=>f.name===m.name)){favs.push(m); localStorage.setItem('nebo_favs',JSON.stringify(favs)); renderFavs(); showToast('Додано в обране ♡');}
   else showToast('Вже в обраному');
 });
+// voice search
+(function(){
+  const btn=document.getElementById('voiceBtn');
+  if(!btn) return;
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    btn.style.opacity='0.45'; btn.title='Голос не підтримується в цьому браузері';
+    return;
+  }
+  const rec=new SR(); rec.lang='uk-UA'; rec.interimResults=false;
+  let listening=false;
+  btn.addEventListener('click',()=>{
+    if(listening){ rec.stop(); return; }
+    listening=true; btn.textContent='●'; btn.classList.add('bg-red-500','text-white'); showToast('Слухаю... скажи місто');
+    rec.start();
+  });
+  rec.onresult=async (e)=>{
+    const q=e.results[0][0].transcript.trim();
+    document.getElementById('searchInput').value=q;
+    showToast('Почув: '+q);
+    const cities=await searchCity(q);
+    if(cities[0]){ const c=cities[0]; const data=await fetchWeather(c.latitude,c.longitude,c.name,c.country_code); render(data); localStorage.setItem('nebo_city', JSON.stringify({lat:c.latitude, lon:c.longitude, name:c.name, country:c.country_code})); }
+  };
+  rec.onend=()=>{ listening=false; btn.textContent='🎤'; btn.classList.remove('bg-red-500','text-white'); };
+  rec.onerror=()=>{ listening=false; btn.textContent='🎤'; btn.classList.remove('bg-red-500','text-white'); showToast('Не почув, спробуй ще'); };
+})();
+// PWA service worker (offline cache)
+if('serviceWorker' in navigator){
+  const swCode=`self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>self.clients.claim());self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;
+  const blob=new Blob([swCode],{type:'text/javascript'});
+  const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
 async function initWeather(){
   renderHistory(); renderFavs();
   // wait for Chart & Leaflet for renderCompare & render
@@ -895,3 +932,5 @@ setTimeout(initWeather, 2500);
 </script>
 </body>
 </html>
+
+
