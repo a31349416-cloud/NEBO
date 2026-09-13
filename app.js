@@ -511,7 +511,47 @@ function updateMap(lat,lon, name){
   marker=L.marker([lat,lon]).addTo(mapObj).bindPopup(`<b>${name}</b>`);
   document.getElementById('mapUpdated').textContent=new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
   setTimeout(()=>mapObj.invalidateSize(),300);
+  // apply current map mode after move
+  setTimeout(()=>{ try{ setMapMode(mapMode); }catch{} }, 400);
 }
+let mapMode='all';
+function setMapMode(mode){
+  mapMode=mode;
+  document.querySelectorAll('.mapModeBtn').forEach(b=>{
+    const active=b.dataset.mode===mode;
+    b.classList.toggle('bg-white', active);
+    b.classList.toggle('text-black', active);
+    b.classList.toggle('font-bold', active);
+    b.classList.toggle('active', active);
+  });
+  const label=document.getElementById('mapModeLabel');
+  if(label) label.textContent = mode==='all' ? 'Всі опади' : mode==='rain' ? 'Тільки дощ' : mode==='snow' ? 'Тільки сніг' : 'Вимкнено';
+  const radar=mapObj?._radarLayer;
+  const toggle=document.getElementById('radarToggle');
+  const enabled = toggle ? toggle.checked : true;
+  if(!radar) return;
+  if(mode==='off' || !enabled){
+    radar.setOpacity(0);
+    return;
+  }
+  let opacity=0.62, filter='';
+  if(mode==='rain'){ opacity=0.75; filter='hue-rotate(205deg) saturate(1.6) brightness(1.0)'; }
+  else if(mode==='snow'){ opacity=0.68; filter='brightness(1.45) contrast(1.15) saturate(0.4) sepia(0.2) hue-rotate(15deg)'; }
+  else { opacity=0.62; filter=''; }
+  radar.setOpacity(opacity);
+  setTimeout(()=>{
+    const pane=document.querySelector('#map .leaflet-overlay-pane');
+    if(pane) pane.style.filter=filter;
+  }, 60);
+}
+// listeners for map modes
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.mapModeBtn').forEach(btn=>{
+    btn.addEventListener('click', ()=> setMapMode(btn.dataset.mode));
+  });
+  const t=document.getElementById('radarToggle');
+  if(t) t.addEventListener('change', ()=> setMapMode(mapMode));
+});
 
 const input=document.getElementById('searchInput'), results=document.getElementById('searchResults');
 let searchTimeout;
