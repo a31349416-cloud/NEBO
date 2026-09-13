@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEBO — найгарніший прогноз погоди</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+<style>
+*{font-family:'Manrope',sans-serif}
+.font-display{font-family:'Space Grotesk',sans-serif}
+.font-serif{font-family:'Cormorant Garamond',serif}
+body{background:#05070a;color:white;overflow-x:hidden}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:.035;z-index:9999;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.glass{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.09)}
+.glass-strong{background:rgba(255,255,255,.09);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.13)}
+.glass-dark{background:rgba(10,12,18,.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06)}
+.gradient-text{background:linear-gradient(100deg,#ff8a5b 0%,#ff3b82 35%,#8b5cf6 70%,#06b6d4 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);mix-blend-mode:screen;opacity:.5}
+#weatherCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.scrollbar-hide::-webkit-scrollbar{display:none}
+.scrollbar-hide{scrollbar-width:none}
+.temp-number{font-variant-numeric:tabular-nums;letter-spacing:-0.05em}
+.shimmer{position:relative;overflow:hidden}
+.shimmer:after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transition:transform .7s}
+.shimmer:hover:after{transform:translateX(100%)}
+.leaflet-container{background:#0a0c12!important}
+.leaflet-control-zoom a{background:rgba(255,255,255,.08)!important;color:white!important;border:none!important;backdrop-filter:blur(10px)}
+.cursor-dot{width:6px;height:6px;background:white;border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99999;mix-blend-mode:difference}
+.cursor-ring{width:28px;height:28px;border:1px solid rgba(255,255,255,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99998;mix-blend-mode:difference;transition:all .15s}
+@media(max-width:768px){.cursor-dot,.cursor-ring{display:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes spinSlow{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes rain{0%{transform:translateY(-10px)}100%{transform:translateY(100vh)}}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<canvas id="weatherCanvas"></canvas>
+
+<!-- bg blobs -->
+<div id="bg" class="fixed inset-0 -z-10 overflow-hidden bg-[#05070a] transition-colors duration-1000">
+  <div id="blob1" class="blob w-[900px] h-[900px] bg-[#ff3b82] -top-[300px] -right-[300px] opacity-20" style="animation:float 12s ease infinite"></div>
+  <div id="blob2" class="blob w-[800px] h-[800px] bg-[#8b5cf6] top-[30%] -left-[200px] opacity-20" style="animation:float 14s ease infinite reverse"></div>
+  <div id="blob3" class="blob w-[700px] h-[700px] bg-[#06b6d4] bottom-0 right-[25%] opacity-15" style="animation:float 10s ease infinite"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#05070a]"></div>
+  <div class="absolute inset-0 opacity-[0.03]" style="background-image:radial-gradient(white 1px, transparent 1px);background-size:32px 32px"></div>
+</div>
+
+<!-- progress -->
+<div class="fixed top-0 left-0 w-full h-[2px] z-[100] bg-white/10"><div id="progress" class="h-full w-full origin-left scale-x-0" style="background:linear-gradient(90deg,#ff8a5b,#ff3b82,#8b5cf6,#06b6d4)"></div></div>
+
+<!-- loader -->
+<div id="loader" class="fixed inset-0 z-[999] bg-[#05070a] flex flex-col items-center justify-center">
+  <div class="text-center">
+    <div class="font-display font-bold text-[18vw] md:text-[10vw] leading-none tracking-[-0.05em]">NEBO<span class="font-serif italic font-light gradient-text">.</span></div>
+    <div class="mt-6 flex items-center justify-center gap-3 text-xs tracking-[0.3em] text-white/50">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ЗАВАНТАЖУЄМО НЕБО
+      <span id="loaderPct" class="font-display font-bold text-white">00%</span>
+    </div>
+    <div class="mt-4 h-[1px] w-56 mx-auto bg-white/10 overflow-hidden rounded-full"><div id="loaderBar" class="h-full w-full origin-left scale-x-0" style="background:linear-gradient(90deg,#ff8a5b,#8b5cf6)"></div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav" class="sticky top-0 z-40 transition-all duration-500">
+  <div class="max-w-[1440px] mx-auto px-4 md:px-6 py-4 flex items-center gap-3 md:gap-6">
+    <a href="#" class="flex items-center gap-3 shrink-0">
+      <span class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white" style="background:linear-gradient(135deg,#ff8a5b,#ff3b82,#8b5cf6)">◐</span>
+      <span class="hidden md:block leading-none"><span class="font-display font-bold text-lg tracking-tight">NEBO</span><span class="block text-[10px] tracking-[0.25em] text-white/50 -mt-1">ПОГОДА • УКРАЇНА</span></span>
+    </a>
+
+    <div class="flex-1 relative max-w-[640px] mx-auto">
+      <div class="relative glass rounded-full flex items-center gap-2 px-2 py-2 shadow-xl">
+        <span class="hidden md:flex w-10 h-10 rounded-full bg-white text-black items-center justify-center shrink-0">⌕</span>
+        <input id="searchInput" placeholder="Пошук міста — Київ, Львів, Paris..." class="flex-1 bg-transparent outline-none text-sm md:text-[15px] placeholder:text-white/40 px-2 md:px-0">
+        <button id="searchBtn" class="shrink-0 px-5 md:px-6 py-2.5 rounded-full font-bold text-sm text-white" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">Знайти</button>
+      </div>
+      <div id="searchResults" class="absolute top-full mt-3 w-full glass-strong rounded-[20px] overflow-hidden hidden z-50 shadow-2xl"></div>
+    </div>
+
+    <div class="hidden lg:flex items-center gap-2 shrink-0">
+      <button id="locBtn" class="glass rounded-full px-5 py-2.5 text-sm font-semibold flex items-center gap-2 hover:bg-white hover:text-black transition"><span>◎</span> Моє місце</button>
+      <div class="glass rounded-full p-1 flex text-sm font-bold">
+        <button id="unitC" class="px-4 py-1.5 rounded-full bg-white text-black transition">°C</button>
+        <button id="unitF" class="px-4 py-1.5 rounded-full text-white/70 transition">°F</button>
+      </div>
+    </div>
+
+    <button id="mobileMenuBtn" class="lg:hidden w-10 h-10 rounded-full glass flex items-center justify-center shrink-0">≡</button>
+  </div>
+</nav>
+
+<!-- quick cities -->
+<div class="max-w-[1440px] mx-auto px-4 md:px-6 -mt-1 mb-4">
+  <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+    <span class="text-xs tracking-widest text-white/30 shrink-0">ПОПУЛЯРНІ:</span>
+    <button data-city="Київ" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Київ</button>
+    <button data-city="Львів" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Львів</button>
+    <button data-city="Одеса" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Одеса</button>
+    <button data-city="Харків" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Харків</button>
+    <button data-city="Дніпро" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Дніпро</button>
+    <button data-city="Paris" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Paris</button>
+    <button data-city="Tokyo" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Tokyo</button>
+    <button data-city="New York" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">New York</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="max-w-[1440px] mx-auto px-4 md:px-6 pb-12 grid grid-cols-12 gap-4 md:gap-6">
+
+  <!-- HERO CURRENT -->
+  <section class="col-span-12 lg:col-span-8 glass-strong rounded-[28px] md:rounded-[36px] overflow-hidden relative min-h-[520px] flex flex-col">
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute inset-0" id="heroGradient" style="background:radial-gradient(800px circle at 20% 0%, rgba(255,138,91,.25), transparent 60%)"></div>
+    </div>
+    <div class="relative p-6 md:p-10 flex-1 flex flex-col">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 id="cityName" class="font-display font-bold text-3xl md:text-[40px] tracking-tight leading-none">Київ</h1>
+            <span id="countryBadge" class="glass rounded-full px-3 py-1 text-xs font-bold tracking-widest">UA • 50.45°N</span>
+            <span id="isDayBadge" class="hidden md:inline-flex items-center gap-1.5 glass rounded-full px-3 py-1 text-xs font-bold"><span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ДЕНЬ</span>
+          </div>
+          <div id="currentDate" class="mt-2 text-sm text-white/60">Неділя, 13 вересня • 14:32 • Оновлено щойно</div>
+          <div id="weatherDesc" class="mt-3 inline-flex items-center gap-2 glass rounded-full px-4 py-2 text-sm font-semibold"><span id="weatherEmoji">☀️</span> <span id="weatherText">Ясно</span> <span class="w-1 h-1 rounded-full bg-white/30"></span> <span id="weatherSub" class="text-white/60">Ідеально для прогулянки</span></div>
+        </div>
+        <div class="hidden md:flex items-center gap-2">
+          <button class="glass rounded-full p-3 hover:bg-white hover:text-black transition" title="Поділитись" onclick="navigator.share?navigator.share({title:'NEBO погода'}):alert('Скопійовано!')">↗</button>
+          <button class="glass rounded-full p-3 hover:bg-white hover:text-black transition">♡</button>
+        </div>
+      </div>
+
+      <div class="mt-8 md:mt-10 flex flex-col md:flex-row items-center gap-6 md:gap-10 flex-1">
+        <div class="flex items-start gap-4">
+          <div id="bigTemp" class="font-display font-[800] leading-none tracking-[-0.06em] text-[96px] md:text-[132px] temp-number">22°</div>
+          <div class="mt-4 md:mt-6">
+            <div id="feelsLike" class="glass rounded-full px-3 py-1 text-xs font-bold">Відчувається 24°</div>
+            <div class="mt-3 text-sm leading-none"><div class="text-white/50 text-xs tracking-widest">МАКС / МІН</div><div id="hiLo" class="font-bold text-lg mt-1">26° / 14°</div></div>
+          </div>
+        </div>
+
+        <div id="weatherIconWrap" class="relative w-[220px] h-[220px] md:w-[260px] md:h-[260px] shrink-0 flex items-center justify-center">
+          <!-- animated icon via JS -->
+          <div id="animatedIcon" class="w-full h-full flex items-center justify-center text-[140px] select-none" style="filter:drop-shadow(0 20px 40px rgba(255,138,91,.3))">☀️</div>
+          <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 glass rounded-full px-4 py-2 text-xs font-bold whitespace-nowrap flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Якість повітря — добра
+          </div>
+        </div>
+
+        <div class="md:ml-auto grid grid-cols-3 md:grid-cols-1 gap-3 w-full md:w-auto">
+          <div class="glass rounded-2xl p-4 text-center md:text-left flex md:items-center gap-3">
+            <span class="hidden md:flex w-10 h-10 rounded-xl bg-white/10 items-center justify-center">💧</span>
+            <div><div class="text-xs tracking-widest text-white/50">ВОЛОГІСТЬ</div><div id="humidityVal" class="font-bold text-xl">62%</div></div>
+          </div>
+          <div class="glass rounded-2xl p-4 text-center md:text-left flex md:items-center gap-3">
+            <span class="hidden md:flex w-10 h-10 rounded-xl bg-white/10 items-center justify-center">💨</span>
+            <div><div class="text-xs tracking-widest text-white/50">ВІТЕР</div><div id="windVal" class="font-bold text-xl">8 <span class="text-sm font-normal text-white/60">км/год</span></div></div>
+          </div>
+          <div class="glass rounded-2xl p-4 text-center md:text-left flex md:items-center gap-3">
+            <span class="hidden md:flex w-10 h-10 rounded-xl bg-white/10 items-center justify-center">🌧️</span>
+            <div><div class="text-xs tracking-widest text-white/50">ОПАДИ</div><div id="precipVal" class="font-bold text-xl">0%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center">◐</span>
+          <span><b id="adviceTitle">Час для кави на терасі</b> <span class="text-white/60 hidden md:inline">— ідеальна погода, бери сонцезахист</span></span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="glass rounded-full px-3 py-1.5">UV 5 помірний</span>
+          <span class="hidden md:inline glass rounded-full px-3 py-1.5">Тиск 1012 гПа</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DETAILS -->
+  <section class="col-span-12 lg:col-span-4 grid grid-cols-2 gap-4 md:gap-6 auto-rows-[148px]">
+    <div class="glass rounded-[24px] p-5 flex flex-col justify-between shimmer">
+      <div class="flex items-start justify-between"><span class="w-10 h-10 rounded-xl bg-[#ff8a5b]/20 flex items-center justify-center text-lg">◎</span><span class="text-xs tracking-widest text-white/40">ВІДЧУВАЄТЬСЯ</span></div>
+      <div><div id="detailFeels" class="font-display font-bold text-3xl">24°</div><div class="text-xs text-white/60 mt-1">Тепліше на 2° через сонце</div><div class="mt-3 h-1.5 w-full bg-white/10 rounded-full overflow-hidden"><div class="h-full w-[68%] rounded-full" style="background:linear-gradient(90deg,#ff8a5b,#ff3b82)"></div></div></div>
+    </div>
+    <div class="glass rounded-[24px] p-5 flex flex-col justify-between">
+      <div class="flex items-start justify-between"><span class="w-10 h-10 rounded-xl bg-[#06b6d4]/20 flex items-center justify-center">💧</span><span class="text-xs tracking-widest text-white/40">ВОЛОГІСТЬ</span></div>
+      <div><div id="detailHumidity" class="font-display font-bold text-3xl">62%</div><div class="text-xs text-white/60 mt-1">Комфортно • Роса 14°</div></div>
+    </div>
+    <div class="glass rounded-[24px] p-5 flex flex-col justify-between">
+      <div class="flex items-start justify-between"><span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">🧭</span><span class="text-xs tracking-widest text-white/40">ВІТЕР</span></div>
+      <div><div id="detailWind" class="font-display font-bold text-3xl">8 <span class="text-lg">км/год</span></div><div class="text-xs text-white/60 mt-1 flex items-center gap-1"><span class="w-4 h-4 rounded-full border border-white/20 flex items-center justify-center text-[10px]">↗</span> Пн-Сх • Пориви 12</div></div>
+    </div>
+    <div class="glass rounded-[24px] p-5 flex flex-col justify-between">
+      <div class="flex items-start justify-between"><span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">◍</span><span class="text-xs tracking-widest text-white/40">ТИСК</span></div>
+      <div><div id="detailPressure" class="font-display font-bold text-3xl">1012</div><div class="text-xs text-white/60 mt-1">гПа • Стабільно</div></div>
+    </div>
+    <div class="col-span-2 glass rounded-[24px] p-5 flex items-center gap-5">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl shrink-0" style="background:linear-gradient(135deg,#ff8a5b,#8b5cf6)">☼</div>
+      <div class="flex-1">
+        <div class="text-xs tracking-widest text-white/40">СХІД — ЗАХІД</div>
+        <div class="font-bold mt-1 flex items-center gap-3"><span id="sunrise">06:42</span> <span class="flex-1 h-[2px] bg-white/10 rounded-full relative overflow-hidden"><span id="sunProgress" class="absolute inset-y-0 left-0 w-[62%] rounded-full" style="background:linear-gradient(90deg,#ff8a5b,#ffd166)"></span><span class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow" style="left:62%"></span></span> <span id="sunset">19:18</span></div>
+        <div class="text-xs text-white/60 mt-1">Світловий день 12г 36хв • До заходу 4г 22хв</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOURLY -->
+  <section class="col-span-12 glass-strong rounded-[28px] p-6 md:p-8 overflow-hidden">
+    <div class="flex items-center justify-between gap-4 mb-6">
+      <h2 class="font-display font-bold text-xl md:text-2xl flex items-center gap-3"><span class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">◷</span> Погодинний прогноз <span class="hidden md:inline font-normal text-sm text-white/50">— наступні 24 години</span></h2>
+      <div class="hidden md:flex items-center gap-2 text-xs"><span class="w-2 h-2 rounded-full bg-[#ff8a5b]"></span> Температура <span class="w-2 h-2 rounded-full bg-[#06b6d4] ml-2"></span> Опади</div>
+    </div>
+    <div id="hourlyTrack" class="flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 -mx-1 px-1"></div>
+  </section>
+
+  <!-- 7 DAYS + MAP -->
+  <section class="col-span-12 lg:col-span-7 glass rounded-[28px] p-6 md:p-8">
+    <h2 class="font-display font-bold text-xl md:text-2xl flex items-center gap-3 mb-6"><span class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">▤</span> 7 днів <span class="ml-auto glass rounded-full px-4 py-1.5 text-xs">Київ • авто-оновлення щогодини</span></h2>
+    <div id="dailyList" class="space-y-2"></div>
+  </section>
+
+  <section class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+    <div class="glass rounded-[28px] p-6 md:p-8">
+      <h3 class="font-display font-bold text-lg flex items-center justify-between">Карта опадів <span class="text-xs font-normal glass rounded-full px-3 py-1">LIVE</span></h3>
+      <div id="map" class="mt-4 w-full h-[280px] rounded-2xl overflow-hidden border border-white/10"></div>
+      <div class="mt-4 flex items-center justify-between text-xs text-white/60">
+        <span>● Дощ</span><span>● Сніг</span><span>● Хмарність</span><span class="hidden md:inline">Оновлено: <span id="mapUpdated">щойно</span></span>
+      </div>
+    </div>
+    <div class="glass rounded-[28px] p-6 md:p-8 relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 w-40 h-40 rounded-full blur-3xl opacity-20" style="background:linear-gradient(135deg,#06b6d4,#8b5cf6)"></div>
+      <h3 class="font-display font-bold text-lg">Якість повітря</h3>
+      <div class="mt-4 flex items-end gap-4">
+        <div class="w-20 h-20 rounded-2xl flex flex-col items-center justify-center text-white font-bold" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><span class="text-2xl">42</span><span class="text-[10px] tracking-widest">AQI</span></div>
+        <div><div class="font-bold">Добра <span class="text-emerald-400">●</span></div><div class="text-sm text-white/60 max-w-[28ch]">Повітря чисте, можна гуляти без обмежень. PM2.5 — 8 µg/m³</div></div>
+      </div>
+      <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+        <div class="glass rounded-2xl p-3"><div class="text-xs text-white/50">PM2.5</div><div class="font-bold">8</div><div class="text-[10px] text-emerald-400">добре</div></div>
+        <div class="glass rounded-2xl p-3"><div class="text-xs text-white/50">PM10</div><div class="font-bold">14</div><div class="text-[10px] text-emerald-400">добре</div></div>
+        <div class="glass rounded-2xl p-3"><div class="text-xs text-white/50">NO₂</div><div class="font-bold">12</div><div class="text-[10px] text-white/60">норм</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- advice -->
+  <section class="col-span-12 rounded-[28px] p-[1px]" style="background:linear-gradient(135deg,#ff8a5b,#ff3b82,#8b5cf6)">
+    <div class="bg-[#0a0c12] rounded-[27px] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">✦</div>
+        <div><div class="font-display font-bold text-xl">NEBO підказує</div><div id="neboAdvice" class="text-white/70 text-sm mt-1 max-w-[60ch]">Сьогодні ідеально для ранкової пробіжки до 11:00, далі стане спекотно — бери кепку та воду.</div></div>
+      </div>
+      <button onclick="document.getElementById('searchInput').focus()" class="shrink-0 px-6 py-3 rounded-full font-bold text-white whitespace-nowrap" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">Перевірити інше місто →</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-white/10 mt-4 py-8">
+  <div class="max-w-[1440px] mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
+    <div class="flex items-center gap-3"><span class="w-8 h-8 rounded-lg flex items-center justify-center font-bold" style="background:linear-gradient(135deg,#ff8a5b,#8b5cf6)">◐</span><span class="font-display font-bold">NEBO</span><span class="text-white/40">© 2026 • Найгарніший прогноз в Україні • Дані Open-Meteo</span></div>
+    <div class="flex gap-6 text-white/60"><a href="#" class="hover:text-white">API</a><a href="#" class="hover:text-white">Про нас</a><a href="#" class="hover:text-white">Telegram</a></div>
+  </div>
+</footer>
+
+<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full font-bold shadow-2xl translate-y-20 opacity-0 transition-all z-50 flex items-center gap-2"><span>✦</span><span id="toastText">Місто знайдено</span></div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// LENIS
+const lenis = new Lenis({duration:1.1, easing:t=>Math.min(1,1.001-Math.pow(2,-10*t))});
+function raf(t){lenis.raf(t);requestAnimationFrame(raf)}requestAnimationFrame(raf);
+lenis.on('scroll',ScrollTrigger.update);
+gsap.ticker.add(t=>lenis.raf(t*1000));
+gsap.ticker.lagSmoothing(0);
+
+// loader
+let p=0; const loaderBar=document.getElementById('loaderBar'), loaderPct=document.getElementById('loaderPct');
+const iv=setInterval(()=>{
+  p+=Math.random()*20;
+  if(p>=100){p=100;clearInterval(iv);
+    loaderPct.textContent='100%'; gsap.to(loaderBar,{scaleX:1,duration:.3});
+    gsap.to('#loader',{yPercent:-100,duration:1, ease:'expo.inOut', delay:.2});
+    gsap.from('#nav',{y:-20,opacity:0,duration:.7,delay:.9});
+    gsap.from('main > section',{y:30,opacity:0,duration:.8,stagger:.08,delay:1, ease:'power3.out'});
+  } else {loaderPct.textContent=String(Math.floor(p)).padStart(2,'0')+'%'; gsap.to(loaderBar,{scaleX:p/100,duration:.2,overwrite:true})}
+},110);
+
+// progress
+gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:'body',start:'top top',end:'bottom bottom',scrub:.3}});
+
+// cursor
+const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;gsap.to(dot,{x:mx-3,y:my-3,duration:.08})});
+gsap.ticker.add(()=>{rx+=(mx-rx)*0.15;ry+=(my-ry)*0.15;ring.style.transform=`translate(${rx-14}px,${ry-14}px)`});
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{gsap.to(ring,{scale:1.6,duration:.2}); gsap.to(dot,{scale:1.8,duration:.2})});
+  el.addEventListener('mouseleave',()=>{gsap.to(ring,{scale:1,duration:.2}); gsap.to(dot,{scale:1,duration:.2})});
+});
+
+// canvas weather particles
+const canvas=document.getElementById('weatherCanvas'), ctx=canvas.getContext('2d');
+let particles=[], animId, currentWeather='clear';
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+resize();addEventListener('resize',resize);
+function createParticles(type, count){
+  particles=[];
+  for(let i=0;i<count;i++) particles.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    vx:(Math.random()-0.5)*(type==='rain'?1:2),
+    vy: type==='rain'? Math.random()*8+8 : type==='snow'? Math.random()*2+1 : Math.random()*1+0.3,
+    r: type==='rain'? Math.random()*1.5+1 : type==='snow'? Math.random()*3+2 : Math.random()*1.2+0.5,
+    o: Math.random()*0.6+0.3
+  });
+}
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(currentWeather==='rain'){
+    ctx.strokeStyle='rgba(180,210,255,0.6)'; ctx.lineWidth=1.2;
+    particles.forEach(p=>{
+      ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x+p.vx*2,p.y+p.r*6); ctx.stroke();
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.y>canvas.height){p.y=-10;p.x=Math.random()*canvas.width}
+      if(p.x<0||p.x>canvas.width) p.x=Math.random()*canvas.width;
+    });
+  } else if(currentWeather==='snow'){
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    particles.forEach(p=>{
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      p.x+=Math.sin(p.y*0.01)*0.5 + p.vx*0.2; p.y+=p.vy;
+      if(p.y>canvas.height){p.y=-10;p.x=Math.random()*canvas.width}
+    });
+  } else if(currentWeather==='clouds' || currentWeather==='fog'){
+    ctx.fillStyle='rgba(255,255,255,0.15)';
+    particles.forEach(p=>{
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r*2,0,Math.PI*2); ctx.fill();
+      p.x+=p.vx*0.6; if(p.x>canvas.width) p.x=-10;
+      if(p.x<-10) p.x=canvas.width;
+    });
+  } else if(currentWeather==='clear' && document.getElementById('isDayBadge')?.textContent.includes('НІЧ')){
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    particles.forEach(p=>{
+      ctx.globalAlpha=p.o; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+      p.y+=p.vy*0.15; if(p.y>canvas.height) p.y=0;
+    });
+  } else {
+    // dust motes
+    ctx.fillStyle='rgba(255,255,255,0.12)';
+    particles.forEach(p=>{
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill();
+      p.x+=p.vx*0.2; p.y+=p.vy*0.2;
+      if(p.y>canvas.height) p.y=0; if(p.x>canvas.width) p.x=0; if(p.x<0) p.x=canvas.width;
+    });
+  }
+  animId=requestAnimationFrame(draw);
+}
+createParticles('dust',80); draw();
+function setWeatherParticles(code, isDay){
+  cancelAnimationFrame(animId);
+  if([61,63,65,66,67,80,81,82,95,96,99].includes(code)) {currentWeather='rain'; createParticles('rain', isDay? 220:180);}
+  else if([71,73,75,77,85,86].includes(code)) {currentWeather='snow'; createParticles('snow', 120);}
+  else if([1,2,3].includes(code)) {currentWeather='clouds'; createParticles('clouds', 60);}
+  else if([45,48].includes(code)) {currentWeather='fog'; createParticles('fog', 50);}
+  else if(code===0 && !isDay) {currentWeather='clear'; createParticles('stars', 140);}
+  else {currentWeather='clear'; createParticles('dust', 70);}
+  draw();
+}
+
+// weather code mapping
+function getWeather(code, isDay){
+  const map={
+    0: isDay?{desc:'Ясно', icon:'☀️', sub:'Ідеально для прогулянки', grad:'rgba(255,138,91,.25)'}:{desc:'Ясно (ніч)', icon:'🌙', sub:'Зоряне небо', grad:'rgba(100,80,160,.25)'},
+    1:{desc:'Переважно ясно', icon:isDay?'🌤️':'🌙', sub:'Легка хмарність', grad:'rgba(255,180,80,.2)'},
+    2:{desc:'Мінлива хмарність', icon:'⛅', sub:'Хмари та сонце', grad:'rgba(140,160,200,.2)'},
+    3:{desc:'Хмарно', icon:'☁️', sub:'Сіре небо', grad:'rgba(120,140,170,.2)'},
+    45:{desc:'Туман', icon:'🌫️', sub:'Обережно на дорозі', grad:'rgba(180,190,200,.2)'},
+    48:{desc:'Паморозь', icon:'🌫️', sub:'Слизько', grad:'rgba(200,210,220,.2)'},
+    51:{desc:'Легка мряка', icon:'🌦️', sub:'Візьми парасолю', grad:'rgba(120,160,220,.2)'},
+    61:{desc:'Дощ', icon:'🌧️', sub:'Парасоля не завадить', grad:'rgba(80,120,200,.25)'},
+    63:{desc:'Помірний дощ', icon:'🌧️', sub:'Дощовий день', grad:'rgba(70,110,190,.25)'},
+    65:{desc:'Сильний дощ', icon:'⛈️', sub:'Залишайся вдома', grad:'rgba(50,80,150,.3)'},
+    71:{desc:'Сніг', icon:'❄️', sub:'Зимова казка', grad:'rgba(200,220,255,.25)'},
+    73:{desc:'Помірний сніг', icon:'❄️', sub:'Сніжить', grad:'rgba(210,230,255,.25)'},
+    75:{desc:'Сильний сніг', icon:'❄️', sub:'Хуртовина', grad:'rgba(220,235,255,.3)'},
+    80:{desc:'Зливи', icon:'🌦️', sub:'Короткий дощ', grad:'rgba(90,130,210,.25)'},
+    95:{desc:'Гроза', icon:'⛈️', sub:'Блискавка!', grad:'rgba(60,60,100,.35)'},
+  };
+  return map[code] || map[1];
+}
+
+// state
+let unit='C';
+let currentData=null;
+let mapObj=null, marker=null;
+
+function cToF(c){return Math.round(c*9/5+32)}
+function fmtTemp(t){return unit==='C'? Math.round(t)+'°' : cToF(t)+'°'}
+function fmtTime(iso){return new Date(iso).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}
+function fmtDay(iso){return new Date(iso).toLocaleDateString('uk-UA',{weekday:'short',day:'numeric',month:'short'})}
+function showToast(msg){
+  const t=document.getElementById('toast'); document.getElementById('toastText').textContent=msg;
+  t.classList.remove('translate-y-20','opacity-0'); setTimeout(()=>t.classList.add('translate-y-20','opacity-0'),2600);
+}
+
+async function searchCity(q){
+  if(!q || q.length<2) return [];
+  const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=uk&format=json`);
+  const j=await r.json(); return j.results||[];
+}
+async function fetchWeather(lat,lon, name, country){
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,is_day,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=7`;
+  const r=await fetch(url); const j=await r.json();
+  return {...j, meta:{name,country,lat,lon}};
+}
+
+function updateBackground(code, isDay){
+  const b1=document.getElementById('blob1'), b2=document.getElementById('blob2'), b3=document.getElementById('blob3'), hg=document.getElementById('heroGradient');
+  if([61,63,65,80,81,82,95].includes(code)){
+    b1.style.background='#2a5bd7'; b2.style.background='#0f2a5a'; b3.style.background='#3b82f6';
+    hg.style.background='radial-gradient(800px circle at 20% 0%, rgba(59,130,246,.25), transparent 60%)';
+  } else if([71,73,75].includes(code)){
+    b1.style.background='#e0e7ff'; b2.style.background='#93c5fd'; b3.style.background='#cbd5e1';
+    hg.style.background='radial-gradient(800px circle at 20% 0%, rgba(200,220,255,.3), transparent 60%)';
+  } else if(code===0 && isDay){
+    b1.style.background='#ff8a5b'; b2.style.background='#ff3b82'; b3.style.background='#f59e0b';
+    hg.style.background='radial-gradient(800px circle at 20% 0%, rgba(255,138,91,.28), transparent 60%)';
+  } else if(code===0 && !isDay){
+    b1.style.background='#1e1b4b'; b2.style.background='#312e81'; b3.style.background='#0f172a';
+    hg.style.background='radial-gradient(800px circle at 20% 0%, rgba(99,102,241,.18), transparent 60%)';
+  } else {
+    b1.style.background='#8b5cf6'; b2.style.background='#06b6d4'; b3.style.background='#ff8a5b';
+    hg.style.background='radial-gradient(800px circle at 20% 0%, rgba(139,92,246,.2), transparent 60%)';
+  }
+}
+
+function render(data){
+  currentData=data;
+  const cur=data.current, daily=data.daily, hourly=data.hourly, meta=data.meta;
+  const isDay=cur.is_day===1;
+  const w=getWeather(cur.weather_code, isDay);
+
+  document.getElementById('cityName').textContent=meta.name;
+  document.getElementById('countryBadge').textContent=(meta.country||'UA')+' • '+meta.lat.toFixed(2)+'°N';
+  document.getElementById('isDayBadge').innerHTML=isDay?'<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> ДЕНЬ':'<span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> НІЧ';
+  document.getElementById('currentDate').textContent=new Date().toLocaleDateString('uk-UA',{weekday:'long', day:'numeric', month:'long'})+' • '+new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})+' • Оновлено щойно';
+  document.getElementById('weatherEmoji').textContent=w.icon;
+  document.getElementById('weatherText').textContent=w.desc;
+  document.getElementById('weatherSub').textContent=w.sub;
+  document.getElementById('bigTemp').textContent=fmtTemp(cur.temperature_2m);
+  document.getElementById('feelsLike').textContent='Відчувається '+fmtTemp(cur.apparent_temperature);
+  document.getElementById('hiLo').textContent=fmtTemp(daily.temperature_2m_max[0])+' / '+fmtTemp(daily.temperature_2m_min[0]);
+  document.getElementById('animatedIcon').textContent=w.icon;
+  document.getElementById('animatedIcon').style.transform=isDay?'scale(1)':'scale(0.95)';
+  document.getElementById('humidityVal').innerHTML=cur.relative_humidity_2m+'<span class="text-sm">%</span>';
+  document.getElementById('windVal').innerHTML=Math.round(cur.wind_speed_10m)+' <span class="text-sm font-normal text-white/60">км/год</span>';
+  document.getElementById('precipVal').textContent=(cur.precipitation||0)+' мм';
+
+  document.getElementById('detailFeels').textContent=fmtTemp(cur.apparent_temperature);
+  document.getElementById('detailHumidity').textContent=cur.relative_humidity_2m+'%';
+  document.getElementById('detailWind').innerHTML=Math.round(cur.wind_speed_10m)+' <span class="text-lg">км/год</span>';
+  document.getElementById('detailPressure').textContent=Math.round(cur.pressure_msl);
+
+  document.getElementById('sunrise').textContent=fmtTime(daily.sunrise[0]);
+  document.getElementById('sunset').textContent=fmtTime(daily.sunset[0]);
+
+  // hourly
+  const track=document.getElementById('hourlyTrack'); track.innerHTML='';
+  const nowHour=new Date().getHours();
+  for(let i=nowHour;i<Math.min(nowHour+24, hourly.time.length); i++){
+    const t=new Date(hourly.time[i]);
+    const temp=hourly.temperature_2m[i];
+    const code=hourly.weather_code[i];
+    const isD=hourly.is_day[i]===1;
+    const info=getWeather(code,isD);
+    const prob=hourly.precipitation_probability[i]||0;
+    const isNow=i===nowHour;
+    const el=document.createElement('div');
+    el.className=`snap-start shrink-0 w-[92px] rounded-2xl p-3 text-center border ${isNow?'bg-white text-black border-white':'glass border-white/10 text-white'}`;
+    el.innerHTML=`
+      <div class="text-xs ${isNow?'text-black/60':'text-white/50'}">${t.getHours().toString().padStart(2,'0')}:00</div>
+      <div class="text-2xl mt-2">${info.icon}</div>
+      <div class="font-bold mt-2">${fmtTemp(temp)}</div>
+      <div class="mt-2 h-1 w-full bg-black/10 rounded-full overflow-hidden ${isNow?'bg-black/10':'bg-white/10'}"><div class="h-full rounded-full" style="width:${Math.min(100,prob)}%; background:${prob>40?'#06b6d4':'rgba(255,255,255,.3)'}"></div></div>
+      <div class="text-[10px] mt-1 ${isNow?'text-black/50':'text-white/40'}">${prob}%</div>
+    `;
+    track.appendChild(el);
+  }
+
+  // daily
+  const list=document.getElementById('dailyList'); list.innerHTML='';
+  const maxT=Math.max(...daily.temperature_2m_max), minT=Math.min(...daily.temperature_2m_min);
+  const range=maxT-minT||1;
+  daily.time.forEach((d,i)=>{
+    const info=getWeather(daily.weather_code[i], true);
+    const max=daily.temperature_2m_max[i], min=daily.temperature_2m_min[i];
+    const left=((min-minT)/range*100), width=((max-min)/range*100);
+    const isToday=i===0;
+    const row=document.createElement('div');
+    row.className=`flex items-center gap-3 md:gap-4 p-3 rounded-2xl ${isToday?'bg-white text-black':'glass hover:bg-white/10 transition'}`;
+    row.innerHTML=`
+      <div class="w-[88px] md:w-[110px] shrink-0"><div class="font-bold text-sm">${isToday?'Сьогодні':fmtDay(d)}</div><div class="text-xs ${isToday?'text-black/60':'text-white/50'}">${info.desc}</div></div>
+      <div class="text-2xl">${info.icon}</div>
+      <div class="hidden md:block text-xs ${isToday?'text-black/60':'text-white/50'} w-20">${daily.precipitation_sum[i]} мм • ${Math.round(daily.wind_speed_10m_max[i])} км/год</div>
+      <div class="flex-1 flex items-center gap-2">
+        <span class="font-bold text-sm w-10 text-right ${isToday?'text-black/60':'text-white/60'}">${fmtTemp(min)}</span>
+        <div class="flex-1 h-1.5 bg-black/10 rounded-full relative overflow-hidden ${isToday?'bg-black/10':'bg-white/10'}"><div class="absolute inset-y-0 rounded-full" style="left:${left}%; width:${Math.max(12,width)}%; background:linear-gradient(90deg,#06b6d4,#8b5cf6,#ff8a5b)"></div></div>
+        <span class="font-bold text-sm w-10">${fmtTemp(max)}</span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  // advice
+  const adv=document.getElementById('neboAdvice');
+  if([61,63,65].includes(cur.weather_code)) adv.textContent='Дощ — час для книжки та какао. Якщо виходиш — бери парасолю і водостійке взуття.';
+  else if([71,73,75].includes(cur.weather_code)) adv.textContent='Сніг! Ідеально для фото та прогулянки. Одягайся тепліше — шапка та рукавички мастхев.';
+  else if(cur.temperature_2m>27) adv.textContent='Спека! Пий більше води, носи кепку та уникай сонця з 12 до 16. Ранок — найкращий час для справ.';
+  else if(cur.temperature_2m<5) adv.textContent='Холодно, але гарно. Термобілизна та гарячий чай врятують день. Перевір опалення вдома.';
+  else if(cur.weather_code===0) adv.textContent='Ідеальний день! Сонце кличе на вулицю — пробіжка, тераса, парк. Не забудь сонцезахист.';
+  else adv.textContent='Мінлива хмарність — візьми легку куртку. Ввечері може похолодати на кілька градусів.';
+
+  updateBackground(cur.weather_code, isDay);
+  setWeatherParticles(cur.weather_code, isDay);
+  updateMap(meta.lat, meta.lon, meta.name);
+
+  // animate numbers
+  gsap.from('#bigTemp',{scale:0.9, opacity:0, duration:.6, ease:'back.out(1.2)'});
+  gsap.from('#animatedIcon',{y:20, opacity:0, duration:.7, delay:.1});
+}
+
+function updateMap(lat,lon, name){
+  if(!mapObj){
+    mapObj=L.map('map',{zoomControl:false, attributionControl:false}).setView([lat,lon],9);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(mapObj);
+    L.control.zoom({position:'bottomright'}).addTo(mapObj);
+  } else mapObj.setView([lat,lon],9);
+  if(marker) mapObj.removeLayer(marker);
+  marker=L.marker([lat,lon]).addTo(mapObj).bindPopup(`<b>${name}</b>`);
+  document.getElementById('mapUpdated').textContent=new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+  setTimeout(()=>mapObj.invalidateSize(),300);
+}
+
+// search UI
+const input=document.getElementById('searchInput'), results=document.getElementById('searchResults');
+let searchTimeout;
+input.addEventListener('input', e=>{
+  clearTimeout(searchTimeout);
+  const q=e.target.value.trim();
+  if(q.length<2){results.classList.add('hidden');return}
+  searchTimeout=setTimeout(async()=>{
+    const cities=await searchCity(q);
+    if(!cities.length){results.classList.add('hidden');return}
+    results.innerHTML=cities.map(c=>`
+      <button data-lat="${c.latitude}" data-lon="${c.longitude}" data-name="${c.name}" data-country="${c.country_code}" class="w-full text-left px-5 py-3.5 flex items-center justify-between hover:bg-white hover:text-black transition border-b border-white/5 last:border-0">
+        <span><span class="font-bold">${c.name}</span> <span class="text-sm opacity-60">${c.admin1||''} • ${c.country}</span></span>
+        <span class="text-xs opacity-40">${c.latitude.toFixed(2)}, ${c.longitude.toFixed(2)}</span>
+      </button>
+    `).join('');
+    results.classList.remove('hidden');
+    results.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', async()=>{
+        results.classList.add('hidden'); input.value=btn.dataset.name;
+        showToast('Завантажуємо '+btn.dataset.name+'…');
+        const data=await fetchWeather(btn.dataset.lat, btn.dataset.lon, btn.dataset.name, btn.dataset.country);
+        render(data); localStorage.setItem('nebo_city', JSON.stringify({lat:btn.dataset.lat, lon:btn.dataset.lon, name:btn.dataset.name, country:btn.dataset.country}));
+      });
+    });
+  },350);
+});
+document.getElementById('searchBtn').addEventListener('click', async()=>{
+  const q=input.value.trim(); if(!q) return;
+  const cities=await searchCity(q);
+  if(cities[0]){
+    const c=cities[0]; const data=await fetchWeather(c.latitude,c.longitude,c.name,c.country_code);
+    render(data); results.classList.add('hidden'); showToast('Знайдено: '+c.name);
+    localStorage.setItem('nebo_city', JSON.stringify({lat:c.latitude, lon:c.longitude, name:c.name, country:c.country_code}));
+  } else showToast('Місто не знайдено');
+});
+input.addEventListener('keydown',e=>{if(e.key==='Enter') document.getElementById('searchBtn').click()});
+document.addEventListener('click',e=>{if(!e.target.closest('#searchInput') && !e.target.closest('#searchResults')) results.classList.add('hidden')});
+
+// chips
+document.querySelectorAll('.cityChip').forEach(b=>{
+  b.addEventListener('click', async()=>{
+    const name=b.dataset.city;
+    showToast('Завантажуємо '+name+'…');
+    const cities=await searchCity(name);
+    if(cities[0]){ const c=cities[0]; const data=await fetchWeather(c.latitude,c.longitude,c.name,c.country_code); render(data); input.value=c.name; localStorage.setItem('nebo_city', JSON.stringify({lat:c.latitude, lon:c.longitude, name:c.name, country:c.country_code}));}
+  });
+});
+
+// units
+document.getElementById('unitC').addEventListener('click',()=>{unit='C'; document.getElementById('unitC').className='px-4 py-1.5 rounded-full bg-white text-black transition'; document.getElementById('unitF').className='px-4 py-1.5 rounded-full text-white/70 transition'; if(currentData) render(currentData)});
+document.getElementById('unitF').addEventListener('click',()=>{unit='F'; document.getElementById('unitF').className='px-4 py-1.5 rounded-full bg-white text-black transition'; document.getElementById('unitC').className='px-4 py-1.5 rounded-full text-white/70 transition'; if(currentData) render(currentData)});
+
+// geolocation
+document.getElementById('locBtn').addEventListener('click',()=>{
+  if(!navigator.geolocation) return showToast('Геолокація не підтримується');
+  showToast('Шукаємо тебе…');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const lat=pos.coords.latitude, lon=pos.coords.longitude;
+    // reverse geocode
+    try{
+      const r=await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=uk`); const j=await r.json();
+      const place=j.results?.[0];
+      const name=place?.name||'Моє місце', country=place?.country_code||'UA';
+      const data=await fetchWeather(lat,lon,name,country); render(data); input.value=name; showToast('Твоє місце: '+name);
+    } catch(e){
+      const data=await fetchWeather(lat,lon,'Моє місце','UA'); render(data);
+    }
+  }, ()=> showToast('Дозволь доступ до геолокації'));
+});
+
+// init
+(async()=>{
+  const saved=localStorage.getItem('nebo_city');
+  let init={lat:50.4501, lon:30.5234, name:'Київ', country:'UA'};
+  if(saved) try{init=JSON.parse(saved)}catch{}
+  try{
+    const data=await fetchWeather(init.lat, init.lon, init.name, init.country);
+    render(data); input.value=init.name;
+  } catch(e){
+    showToast('Помилка завантаження, перевір інтернет');
+  }
+})();
+
+// mobile menu
+document.getElementById('mobileMenuBtn').addEventListener('click',()=>{
+  document.getElementById('locBtn').classList.toggle('hidden');
+});
+</script>
+</body>
+</html>
