@@ -7,13 +7,34 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Manrope:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+// ultra-early loader — runs before any CDN, no dependencies, polls for element
+(function(){
+  function init(){
+    const bar=document.getElementById('loaderBar');
+    const pct=document.getElementById('loaderPct');
+    const loader=document.getElementById('loader');
+    if(!bar||!pct||!loader) return;
+    bar.style.animation='none'; loader.style.animation='none';
+    let p=0;
+    function set(v){ p=v; pct.textContent=String(Math.floor(v)).padStart(2,'0')+'%'; bar.style.transform='scaleX('+(v/100)+')'; }
+    const iv=setInterval(()=>{ p+=Math.random()*14+8; if(p>=100){p=100; clearInterval(iv); set(p); setTimeout(()=>{ loader.style.transition='transform .85s cubic-bezier(.9,0,.1,1)'; loader.style.transform='translateY(-100%)'; setTimeout(()=>loader.style.display='none',960); },220);} else set(p); },105);
+    setTimeout(()=>{ if(p<100){ clearInterval(iv); set(100); setTimeout(()=>{ loader.style.transition='transform .85s cubic-bezier(.9,0,.1,1)'; loader.style.transform='translateY(-100%)'; setTimeout(()=>loader.style.display='none',960); },220); } }, 3100);
+  }
+  function poll(){
+    if(document.getElementById('loaderBar')) init();
+    else setTimeout(poll, 16);
+  }
+  poll();
+})();
+</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script defer src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
 *{font-family:'Manrope',sans-serif}
 .font-display{font-family:'Space Grotesk',sans-serif}
@@ -50,6 +71,10 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
 @keyframes drift{0%{transform:translateX(0)}50%{transform:translateX(18px)}100%{transform:translateX(0)}}
 @keyframes rainDrop{0%{transform:translateY(-10px);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(60px);opacity:0}}
 @keyframes sunRay{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes loaderGrow{from{transform:scaleX(0)} to{transform:scaleX(1)}}
+@keyframes loaderHide{to{transform:translateY(-100%)}}
+#loaderBar{ animation: loaderGrow 2.9s ease forwards; }
+#loader{ animation: loaderHide .85s cubic-bezier(.9,0,.1,1) forwards 3.35s; }
 /* svg weather */
 .w-icon{width:100%;height:100%}
 </style>
@@ -316,72 +341,61 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
 
 <script>
 let lenis=null;
-try{
-  gsap.registerPlugin(ScrollTrigger);
-  lenis = new Lenis({duration:1.1, easing:t=>Math.min(1,1.001-Math.pow(2,-10*t))});
-  function raf(t){lenis.raf(t);requestAnimationFrame(raf)}requestAnimationFrame(raf);
-  lenis.on('scroll',ScrollTrigger.update);
-  gsap.ticker.add(t=>lenis.raf(t*1000));
-  gsap.ticker.lagSmoothing(0);
-}catch(e){ console.warn('GSAP/Lenis not ready',e); }
-let p=0; const loaderBar=document.getElementById('loaderBar'), loaderPct=document.getElementById('loaderPct'), loaderEl=document.getElementById('loader');
-function setLoaderProgress(val){
-  loaderPct.textContent=String(Math.floor(val)).padStart(2,'0')+'%';
-  loaderBar.style.transform=`scaleX(${val/100})`;
-  try{ gsap.to(loaderBar,{scaleX:val/100,duration:.2,overwrite:true}) }catch(e){}
-}
-function hideLoader(){
-  setLoaderProgress(100);
-  loaderPct.textContent='100%';
-  setTimeout(()=>{
-    try{
-      gsap.to('#loader',{yPercent:-100,duration:0.9, ease:'expo.inOut'});
-      gsap.from('#nav',{y:-20,opacity:0,duration:.7,delay:.4});
-      gsap.from('main > section',{y:24,opacity:0,duration:.7,stagger:.06,delay:.5, ease:'power3.out'});
-    }catch(e){
-      loaderEl.style.transition='transform 0.8s cubic-bezier(0.9,0,0.1,1)';
-      loaderEl.style.transform='translateY(-100%)';
+function initEnhancements(){
+  try{
+    if(!window.gsap || !window.ScrollTrigger || !window.Lenis){
+      return setTimeout(initEnhancements, 120);
     }
-    setTimeout(()=>{ loaderEl.style.display='none'; }, 1000);
-  }, 200);
+    gsap.registerPlugin(ScrollTrigger);
+    lenis = new Lenis({duration:1.1, easing:t=>Math.min(1,1.001-Math.pow(2,-10*t))});
+    function raf(t){lenis.raf(t);requestAnimationFrame(raf)}requestAnimationFrame(raf);
+    lenis.on('scroll',ScrollTrigger.update);
+    gsap.ticker.add(t=>lenis.raf(t*1000));
+    gsap.ticker.lagSmoothing(0);
+    try{ gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:'body',start:'top top',end:'bottom bottom',scrub:.3}})}catch{}
+    setTimeout(()=>{ try{ gsap.from('#nav',{y:-20,opacity:0,duration:.7}); gsap.from('main > section',{y:24,opacity:0,duration:.7,stagger:.06,delay:.1, ease:'power3.out'});}catch{} }, 300);
+    // cursor
+    try{
+      const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
+      let mx=0,my=0,rx=0,ry=0;
+      window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;try{gsap.to(dot,{x:mx-3,y:my-3,duration:.08})}catch{dot.style.transform=`translate(${mx-3}px,${my-3}px)`}});
+      gsap.ticker.add(()=>{rx+=(mx-rx)*0.15;ry+=(my-ry)*0.15;ring.style.transform=`translate(${rx-14}px,${ry-14}px)`});
+      document.querySelectorAll('a,button').forEach(el=>{
+        el.addEventListener('mouseenter',()=>{try{gsap.to(ring,{scale:1.6,duration:.2}); gsap.to(dot,{scale:1.8,duration:.2})}catch{}});
+        el.addEventListener('mouseleave',()=>{try{gsap.to(ring,{scale:1,duration:.2}); gsap.to(dot,{scale:1,duration:.2})}catch{}});
+      });
+    }catch{}
+    // tilt
+    try{
+      const tiltCard=document.getElementById('tiltCard');
+      if(tiltCard){
+        tiltCard.addEventListener('mousemove',e=>{
+          const r=tiltCard.getBoundingClientRect(); const x=(e.clientX - r.left)/r.width -0.5; const y=(e.clientY - r.top)/r.height -0.5;
+          gsap.to(tiltCard,{rotationY:x*6, rotationX:-y*6, duration:.5, transformPerspective:1000});
+        });
+        tiltCard.addEventListener('mouseleave',()=> gsap.to(tiltCard,{rotationY:0, rotationX:0, duration:.7}));
+      }
+    }catch{}
+  }catch(e){ console.warn(e); }
 }
-const iv=setInterval(()=>{
-  p+=Math.random()*16+6;
-  if(p>=100){p=100;clearInterval(iv); hideLoader();}
-  else { setLoaderProgress(p); }
-},110);
-// safety — hide anyway after 2.8s if stuck
-setTimeout(()=>{ if(p<100){ clearInterval(iv); hideLoader(); } }, 2800);
-try{ gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:'body',start:'top top',end:'bottom bottom',scrub:.3}})}catch(e){
-  window.addEventListener('scroll',()=>{
-    const sc=window.scrollY / (document.body.scrollHeight - innerHeight);
-    document.getElementById('progress').style.transform=`scaleX(${sc})`;
-  });
-}
-try{
-  const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
-  let mx=0,my=0,rx=0,ry=0;
-  window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;try{gsap.to(dot,{x:mx-3,y:my-3,duration:.08})}catch{dot.style.transform=`translate(${mx-3}px,${my-3}px)`}});
-  try{ gsap.ticker.add(()=>{rx+=(mx-rx)*0.15;ry+=(my-ry)*0.15;ring.style.transform=`translate(${rx-14}px,${ry-14}px)`}); }catch{}
-  document.querySelectorAll('a,button').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{try{gsap.to(ring,{scale:1.6,duration:.2}); gsap.to(dot,{scale:1.8,duration:.2})}catch{}});
-    el.addEventListener('mouseleave',()=>{try{gsap.to(ring,{scale:1,duration:.2}); gsap.to(dot,{scale:1,duration:.2})}catch{}});
-  });
-}catch(e){}
+if(document.readyState==='complete') initEnhancements();
+else window.addEventListener('load', initEnhancements);
+setTimeout(initEnhancements, 1500);
+setTimeout(()=>{
+  if(!window.gsap || !window.ScrollTrigger){
+    window.addEventListener('scroll',()=>{
+      const sc=window.scrollY / (document.body.scrollHeight - innerHeight);
+      const el=document.getElementById('progress');
+      if(el) el.style.transform=`scaleX(${sc})`;
+    });
+  }
+}, 2000);
 document.getElementById('themeBtn').addEventListener('click',()=>{
   document.body.classList.toggle('light');
   const isLight=document.body.classList.contains('light');
   document.getElementById('bg').style.background=isLight?'#f1f0ee':'#05070a';
   showToast(isLight?'Світла тема ☀️':'Темна тема 🌙');
 });
-try{
-  const tiltCard=document.getElementById('tiltCard');
-  tiltCard.addEventListener('mousemove',e=>{
-    const r=tiltCard.getBoundingClientRect(); const x=(e.clientX - r.left)/r.width -0.5; const y=(e.clientY - r.top)/r.height -0.5;
-    gsap.to(tiltCard,{rotationY:x*6, rotationX:-y*6, duration:.5, transformPerspective:1000});
-  });
-  tiltCard.addEventListener('mouseleave',()=> gsap.to(tiltCard,{rotationY:0, rotationX:0, duration:.7}));
-}catch(e){}
 // mesh canvas - subtle gradient mesh
 const mesh=document.getElementById('meshCanvas'), mctx=mesh.getContext('2d');
 function resizeMesh(){mesh.width=innerWidth; mesh.height=innerHeight}
@@ -701,29 +715,31 @@ function render(data){
     `;
     track.appendChild(el);
   }
-  const ctxC=document.getElementById('hourlyChart').getContext('2d');
-  if(hourlyChart) hourlyChart.destroy();
-  const grad = ctxC.createLinearGradient(0,0,0,170);
-  grad.addColorStop(0,'rgba(255,138,91,.38)'); grad.addColorStop(1,'rgba(255,138,91,0)');
-  hourlyChart = new Chart(ctxC, {
-    type:'line',
-    data:{
-      labels:labels,
-      datasets:[
-        {label:'Температура', data:temps, borderColor:'#ff8a5b', backgroundColor:grad, fill:true, tension:.45, borderWidth:2.6, pointRadius:0, pointHoverRadius:5},
-        {label:'Опади %', data:probs, borderColor:'rgba(6,182,214,.55)', borderDash:[4,4], fill:false, tension:.4, borderWidth:1.5, pointRadius:0, yAxisID:'y1'}
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
-      plugins:{legend:{display:false}, tooltip:{backgroundColor:'rgba(10,12,18,.92)', titleColor:'white', bodyColor:'white', borderColor:'rgba(255,255,255,.1)', borderWidth:1, padding:10}},
-      scales:{
-        x:{grid:{display:false}, ticks:{color:'rgba(255,255,255,.45)', font:{size:10}}, border:{display:false}},
-        y:{grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'rgba(255,255,255,.45)', font:{size:10}}, border:{display:false}},
-        y1:{position:'right', grid:{display:false}, ticks:{display:false}, border:{display:false}, min:0, max:100}
+  try{
+    const ctxC=document.getElementById('hourlyChart').getContext('2d');
+    if(hourlyChart) hourlyChart.destroy();
+    const grad = ctxC.createLinearGradient(0,0,0,170);
+    grad.addColorStop(0,'rgba(255,138,91,.38)'); grad.addColorStop(1,'rgba(255,138,91,0)');
+    hourlyChart = new Chart(ctxC, {
+      type:'line',
+      data:{
+        labels:labels,
+        datasets:[
+          {label:'Температура', data:temps, borderColor:'#ff8a5b', backgroundColor:grad, fill:true, tension:.45, borderWidth:2.6, pointRadius:0, pointHoverRadius:5},
+          {label:'Опади %', data:probs, borderColor:'rgba(6,182,214,.55)', borderDash:[4,4], fill:false, tension:.4, borderWidth:1.5, pointRadius:0, yAxisID:'y1'}
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false, interaction:{intersect:false, mode:'index'},
+        plugins:{legend:{display:false}, tooltip:{backgroundColor:'rgba(10,12,18,.92)', titleColor:'white', bodyColor:'white', borderColor:'rgba(255,255,255,.1)', borderWidth:1, padding:10}},
+        scales:{
+          x:{grid:{display:false}, ticks:{color:'rgba(255,255,255,.45)', font:{size:10}}, border:{display:false}},
+          y:{grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'rgba(255,255,255,.45)', font:{size:10}}, border:{display:false}},
+          y1:{position:'right', grid:{display:false}, ticks:{display:false}, border:{display:false}, min:0, max:100}
+        }
       }
-    }
-  });
+    });
+  }catch(e){ console.warn('chart',e); }
 
   const list=document.getElementById('dailyList'); list.innerHTML='';
   const maxT=Math.max(...daily.temperature_2m_max), minT=Math.min(...daily.temperature_2m_min);
@@ -764,11 +780,11 @@ function render(data){
 
   updateBackground(cur.weather_code, isDay);
   setWeatherParticles(cur.weather_code, isDay);
-  updateMap(meta.lat, meta.lon, meta.name);
+  try{ updateMap(meta.lat, meta.lon, meta.name); }catch(e){ console.warn('map',e); }
   addToHistory(meta);
   renderFavs();
-  gsap.from('#bigTemp',{scale:0.92, opacity:0, duration:.6, ease:'back.out(1.2)'});
-  gsap.from('#animatedIcon',{y:20, opacity:0, duration:.7, delay:.1});
+  try{ gsap.from('#bigTemp',{scale:0.92, opacity:0, duration:.6, ease:'back.out(1.2)'}); }catch{}
+  try{ gsap.from('#animatedIcon',{y:20, opacity:0, duration:.7, delay:.1}); }catch{}
 }
 
 function updateMap(lat,lon, name){
@@ -852,18 +868,30 @@ document.getElementById('favBtn').addEventListener('click',()=>{
   if(!favs.find(f=>f.name===m.name)){favs.push(m); localStorage.setItem('nebo_favs',JSON.stringify(favs)); renderFavs(); showToast('Додано в обране ♡');}
   else showToast('Вже в обраному');
 });
-(async()=>{
-  renderHistory(); renderFavs(); renderCompare();
+async function initWeather(){
+  renderHistory(); renderFavs();
+  // wait for Chart & Leaflet for renderCompare & render
+  let tries=0;
+  while((!window.Chart || !window.L) && tries<60){
+    await new Promise(r=>setTimeout(r, 100));
+    tries++;
+  }
+  try{ renderCompare(); }catch(e){ console.warn('compare fail',e); }
   const saved=localStorage.getItem('nebo_city');
   let init={lat:50.4501, lon:30.5234, name:'Київ', country:'UA'};
   if(saved) try{init=JSON.parse(saved)}catch{}
   try{
     const data=await fetchWeather(init.lat, init.lon, init.name, init.country);
+    // wait again if still not ready
+    let t2=0; while((!window.Chart || !window.L) && t2<30){ await new Promise(r=>setTimeout(r,100)); t2++; }
     render(data); input.value=init.name;
   } catch(e){
     showToast('Помилка завантаження');
   }
-})();
+}
+if(document.readyState==='complete') initWeather();
+else window.addEventListener('load', initWeather);
+setTimeout(initWeather, 2500);
 </script>
 </body>
 </html>
