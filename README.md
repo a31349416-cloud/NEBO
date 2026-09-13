@@ -126,20 +126,6 @@ npm run build && npm run preview  # dist/
 
 ---
 
-## 🗺 Роадмап
-
-- [x] **v4 HYPER+** — голос + PWA
-- [x] **v5 PRODUCTION** — split + a11y + тести + CI
-- [ ] **Tailwind build purge** → `perf 90+`
-- [ ] **Playwright e2e** — пошук, карта, голос
-- [ ] **i18n** `en/uk` + `next-intl`
-
----
-
-## 🎨 Дизайн-система
-
-`glass: rgba(255,255,255,0.07) + blur(20px)` • `gradient: #ff8a5b → #ff3b82 → #8b5cf6 → #06b6d4` • `blob: blur(90px) + float 11s` • `Manrope + Space Grotesk + Cormorant`
-
 ---
 
 ## 📄 Ліцензія
