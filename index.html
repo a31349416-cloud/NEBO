@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEBO v4 — HYPER+</title>
-<link rel="manifest" href='data:application/json,{"name":"NEBO HYPER","short_name":"NEBO","display":"standalone","background_color":"%2305070a","theme_color":"%23ff3b82","start_url":".","icons":[]}'>
+<meta name="description" content="NEBO HYPER — найгарніший прогноз погоди в Україні. Живі дані Open-Meteo, анімовані SVG іконки, графіки, карта, голосовий пошук та PWA.">
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22NEBO%20HYPER%22%2C%22short_name%22%3A%22NEBO%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%2305070a%22%2C%22theme_color%22%3A%22%23ff3b82%22%2C%22start_url%22%3A%22.%22%2C%22icons%22%3A%5B%5D%7D">
 <meta name="theme-color" content="#05070a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,44 +117,46 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
   </div>
 </div>
 
-<nav id="nav" class="sticky top-0 z-40">
+<header role="banner">
+<nav id="nav" class="sticky top-0 z-40" aria-label="Головна навігація">
   <div class="max-w-[1440px] mx-auto px-4 md:px-6 py-4 flex items-center gap-3 md:gap-5">
     <a href="#" class="flex items-center gap-3 shrink-0">
       <span class="w-10 h-10 rounded-xl flex items-center justify-center font-display font-bold text-white shadow-lg relative overflow-hidden" style="background:linear-gradient(135deg,#ff8a5b,#ff3b82,#8b5cf6)"><span class="absolute inset-0 bg-white/15 opacity-0 hover:opacity-100 transition"></span>◐</span>
       <span class="hidden md:block leading-none"><span class="font-display font-bold text-lg tracking-tight">NEBO</span><span class="ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-white text-black">v4</span><span class="block text-[10px] tracking-[0.22em] text-white/50 -mt-0.5">HYPER • ПОГОДА</span></span>
     </a>
     <div class="flex-1 relative max-w-[640px] mx-auto">
-      <div class="relative glass rounded-full flex items-center gap-2 px-2 py-2 shadow-xl">
+      <div role="search" class="relative glass rounded-full flex items-center gap-2 px-2 py-2 shadow-xl">
         <span class="hidden md:flex w-10 h-10 rounded-full bg-white text-black items-center justify-center shrink-0">⌕</span>
-        <input id="searchInput" placeholder="Пошук міста — Київ, Львів, Paris..." class="flex-1 bg-transparent outline-none text-sm md:text-[15px] placeholder:text-white/40 px-2 md:px-0">
-        <button id="voiceBtn" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white hover:text-black flex items-center justify-center shrink-0 transition" title="Голосовий пошук">🎤</button>
-        <button id="searchBtn" class="shrink-0 px-5 md:px-6 py-2.5 rounded-full font-bold text-sm text-white shadow" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">Знайти</button>
+        <input id="searchInput" aria-label="Пошук міста" placeholder="Пошук міста — Київ, Львів, Paris..." class="flex-1 bg-transparent outline-none text-sm md:text-[15px] placeholder:text-white/40 px-2 md:px-0">
+        <button type="button" id="voiceBtn" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white hover:text-black flex items-center justify-center shrink-0 transition" title="Голосовий пошук" aria-label="Голосовий пошук">🎤</button>
+        <button type="button" id="searchBtn" class="shrink-0 px-5 md:px-6 py-2.5 rounded-full font-bold text-sm text-white shadow" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)" aria-label="Знайти місто">Знайти</button>
       </div>
       <div id="searchResults" class="absolute top-full mt-3 w-full glass-strong rounded-[20px] overflow-hidden hidden z-50 shadow-2xl"></div>
     </div>
     <div class="hidden lg:flex items-center gap-2 shrink-0">
-      <button id="themeBtn" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white hover:text-black transition" title="Тема">◐</button>
-      <button id="locBtn" class="glass rounded-full px-5 py-2.5 text-sm font-semibold flex items-center gap-2 hover:bg-white hover:text-black transition"><span>◎</span> Моє місце</button>
+      <button type="button" id="themeBtn" class="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white hover:text-black transition" title="Тема" aria-label="Перемкнути тему">◐</button>
+      <button type="button" id="locBtn" class="glass rounded-full px-5 py-2.5 text-sm font-semibold flex items-center gap-2 hover:bg-white hover:text-black transition" aria-label="Моє місцеперебування"><span>◎</span> Моє місце</button>
       <div class="glass rounded-full p-1 flex text-sm font-bold">
-        <button id="unitC" class="px-4 py-1.5 rounded-full bg-white text-black transition">°C</button>
-        <button id="unitF" class="px-4 py-1.5 rounded-full text-white/70 transition">°F</button>
+        <button type="button" id="unitC" aria-label="Цельсій" class="px-4 py-1.5 rounded-full bg-white text-black transition">°C</button>
+        <button type="button" id="unitF" aria-label="Фаренгейт" class="px-4 py-1.5 rounded-full text-white/70 transition">°F</button>
       </div>
     </div>
-    <button id="mobileMenuBtn" class="lg:hidden w-10 h-10 rounded-full glass flex items-center justify-center">≡</button>
+    <button id="mobileMenuBtn" type="button" aria-label="Відкрити меню" class="lg:hidden w-10 h-10 rounded-full glass flex items-center justify-center">≡</button>
   </div>
 </nav>
+</header>
 
 <div class="max-w-[1440px] mx-auto px-4 md:px-6 -mt-1 mb-3">
   <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2" id="quickCities">
     <span class="text-xs tracking-widest text-white/30 shrink-0">ШВИДКО:</span>
-    <button data-city="Київ" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition font-medium">Київ</button>
-    <button data-city="Львів" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Львів</button>
-    <button data-city="Одеса" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Одеса</button>
-    <button data-city="Харків" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Харків</button>
-    <button data-city="Дніпро" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Дніпро</button>
-    <button data-city="Буковель" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Буковель</button>
-    <button data-city="Paris" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Paris</button>
-    <button data-city="Bali" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Bali</button>
+    <button type="button" data-city="Київ" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition font-medium">Київ</button>
+    <button type="button" data-city="Львів" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Львів</button>
+    <button type="button" data-city="Одеса" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Одеса</button>
+    <button type="button" data-city="Харків" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Харків</button>
+    <button type="button" data-city="Дніпро" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Дніпро</button>
+    <button type="button" data-city="Буковель" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Буковель</button>
+    <button type="button" data-city="Paris" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Paris</button>
+    <button type="button" data-city="Bali" class="cityChip shrink-0 glass rounded-full px-4 py-1.5 text-sm hover:bg-white hover:text-black transition">Bali</button>
   </div>
   <div id="favBar" class="hidden items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
     <span class="text-xs tracking-widest text-white/30 shrink-0">ОБРАНЕ:</span>
@@ -184,8 +187,8 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
             <div id="weatherDesc" class="mt-3 inline-flex items-center gap-2 glass rounded-full px-4 py-2 text-sm font-semibold shadow"><span id="weatherEmoji">☀️</span> <span id="weatherText">Ясно</span> <span class="w-1 h-1 rounded-full bg-white/30"></span> <span id="weatherSub" class="text-white/60">Ідеально для прогулянки</span></div>
           </div>
           <div class="hidden md:flex items-center gap-2">
-            <button class="glass rounded-full w-10 h-10 flex items-center justify-center hover:bg-white hover:text-black transition" onclick="if(navigator.share) navigator.share({title:document.getElementById('cityName').textContent+' — NEBO'}); else {navigator.clipboard.writeText(location.href); showToast('Скопійовано!')}">↗</button>
-            <button id="favBtn" class="glass rounded-full w-10 h-10 flex items-center justify-center hover:bg-white hover:text-black transition">♡</button>
+            <button type="button" class="glass rounded-full w-10 h-10 flex items-center justify-center hover:bg-white hover:text-black transition" onclick="if(navigator.share) navigator.share({title:document.getElementById('cityName').textContent+' — NEBO'}); else {navigator.clipboard.writeText(location.href); showToast('Скопійовано!')}">↗</button>
+            <button type="button" id="favBtn" class="glass rounded-full w-10 h-10 flex items-center justify-center hover:bg-white hover:text-black transition" aria-label="Додати в обране">♡</button>
           </div>
         </div>
 
@@ -325,7 +328,7 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
         <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">✦</div>
         <div><div class="font-display font-bold text-xl">NEBO підказує</div><div id="neboAdvice" class="text-white/70 text-sm mt-1 max-w-[60ch] leading-relaxed">Сьогодні ідеально для ранкової пробіжки до 11:00.</div></div>
       </div>
-      <button onclick="document.getElementById('searchInput').focus(); window.scrollTo({top:0,behavior:'smooth'})" class="shrink-0 px-6 py-3 rounded-full font-bold text-white whitespace-nowrap shadow hover:scale-[1.02] transition" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">Перевірити інше місто →</button>
+      <button type="button" onclick="document.getElementById('searchInput').focus(); window.scrollTo({top:0,behavior:'smooth'})" class="shrink-0 px-6 py-3 rounded-full font-bold text-white whitespace-nowrap shadow hover:scale-[1.02] transition" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">Перевірити інше місто →</button>
     </div>
   </section>
 
@@ -341,7 +344,7 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
   </div>
 </footer>
 
-<div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full font-bold shadow-2xl translate-y-20 opacity-0 transition-all z-50 flex items-center gap-2"><span>✦</span><span id="toastText">Місто знайдено</span></div>
+<div id="toast" role="status" aria-live="polite" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full font-bold shadow-2xl translate-y-20 opacity-0 transition-all z-50 flex items-center gap-2"><span>✦</span><span id="toastText">Місто знайдено</span></div>
 
 <script>
 let lenis=null;
@@ -352,7 +355,7 @@ function initEnhancements(){
     }
     gsap.registerPlugin(ScrollTrigger);
     lenis = new Lenis({duration:1.1, easing:t=>Math.min(1,1.001-Math.pow(2,-10*t))});
-    function raf(t){lenis.raf(t);requestAnimationFrame(raf)}requestAnimationFrame(raf);
+    function raf(t){lenis.raf(t);window.requestAnimationFrame(raf)}window.requestAnimationFrame(raf);
     lenis.on('scroll',ScrollTrigger.update);
     gsap.ticker.add(t=>lenis.raf(t*1000));
     gsap.ticker.lagSmoothing(0);
@@ -388,7 +391,7 @@ setTimeout(initEnhancements, 1500);
 setTimeout(()=>{
   if(!window.gsap || !window.ScrollTrigger){
     window.addEventListener('scroll',()=>{
-      const sc=window.scrollY / (document.body.scrollHeight - innerHeight);
+      const sc=window.scrollY / (document.body.scrollHeight - window.innerHeight);
       const el=document.getElementById('progress');
       if(el) el.style.transform=`scaleX(${sc})`;
     });
@@ -402,8 +405,8 @@ document.getElementById('themeBtn').addEventListener('click',()=>{
 });
 // mesh canvas - subtle gradient mesh
 const mesh=document.getElementById('meshCanvas'), mctx=mesh.getContext('2d');
-function resizeMesh(){mesh.width=innerWidth; mesh.height=innerHeight}
-resizeMesh(); addEventListener('resize',resizeMesh);
+function resizeMesh(){mesh.width=window.innerWidth; mesh.height=window.innerHeight}
+resizeMesh(); window.addEventListener('resize',resizeMesh);
 let t=0;
 function drawMesh(){
   t+=0.002;
@@ -420,15 +423,15 @@ function drawMesh(){
     g.addColorStop(0,o.c); g.addColorStop(1,'transparent');
     mctx.fillStyle=g; mctx.beginPath(); mctx.arc(o.x,o.y,o.r,0,Math.PI*2); mctx.fill();
   });
-  requestAnimationFrame(drawMesh);
+  window.requestAnimationFrame(drawMesh);
 }
 drawMesh();
 
 // weather particles
 const canvas=document.getElementById('weatherCanvas'), ctx=canvas.getContext('2d');
 let particles=[], animId, currentWeather='clear';
-function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
-resize();addEventListener('resize',resize);
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
 function createParticles(type, count){
   particles=[];
   for(let i=0;i<count;i++) particles.push({
@@ -478,11 +481,11 @@ function draw(){
       if(p.y>canvas.height) p.y=0; if(p.x>canvas.width) p.x=0; if(p.x<0) p.x=canvas.width;
     });
   }
-  animId=requestAnimationFrame(draw);
+  animId=window.requestAnimationFrame(draw);
 }
 createParticles('dust',80); draw();
 function setWeatherParticles(code, isDay){
-  cancelAnimationFrame(animId);
+  window.cancelAnimationFrame(animId);
   if([61,63,65,66,67,80,81,82,95,96,99].includes(code)) {currentWeather='rain'; createParticles('rain', isDay? 250:190);}
   else if([71,73,75,77,85,86].includes(code)) {currentWeather='snow'; createParticles('snow', 135);}
   else if([1,2,3].includes(code)) {currentWeather='clouds'; createParticles('clouds', 68);}
@@ -555,12 +558,18 @@ function showToast(msg){
 }
 async function searchCity(q){
   if(!q || q.length<2) return [];
-  const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=uk&format=json`);
-  const j=await r.json(); return j.results||[];
+  try{
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=uk&format=json`);
+    if(!r.ok) throw new Error('Geocoding HTTP '+r.status);
+    const j=await r.json(); return j.results||[];
+  }catch(e){ console.warn('searchCity', e); try{ showToast('Помилка пошуку'); }catch{} return []; }
 }
 async function fetchWeather(lat,lon, name, country){
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl&hourly=temperature_2m,weather_code,is_day,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,wind_speed_10m_max&timezone=auto&forecast_days=7`;
-  const r=await fetch(url); const j=await r.json();
+  const r=await fetch(url);
+  if(!r.ok) throw new Error('Weather HTTP '+r.status);
+  const j=await r.json();
+  if(!j.current) throw new Error('No weather data');
   return {...j, meta:{name,country,lat,lon}};
 }
 function updateBackground(code, isDay){
@@ -588,49 +597,62 @@ function updateBackground(code, isDay){
   }
 }
 function addToHistory(meta){
-  let h=JSON.parse(localStorage.getItem('nebo_history')||'[]');
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('nebo_history')||'[]'); }catch{ h=[]; }
   h=h.filter(x=>x.name!==meta.name);
   h.unshift(meta); h=h.slice(0,6);
-  localStorage.setItem('nebo_history', JSON.stringify(h));
+  try{ localStorage.setItem('nebo_history', JSON.stringify(h)); }catch(e){ console.warn('localStorage',e); }
   renderHistory();
 }
 function renderHistory(){
-  const h=JSON.parse(localStorage.getItem('nebo_history')||'[]');
+  let h=[]; try{ h=JSON.parse(localStorage.getItem('nebo_history')||'[]'); }catch{ h=[]; }
   const bar=document.getElementById('historyBar'), chips=document.getElementById('historyChips');
   if(!h.length){bar.classList.add('hidden'); bar.classList.remove('flex'); return}
   bar.classList.remove('hidden'); bar.classList.add('flex');
-  chips.innerHTML=h.map(x=>`<button data-lat="${x.lat}" data-lon="${x.lon}" data-name="${x.name}" data-country="${x.country}" class="historyChip shrink-0 glass rounded-full px-3 py-1.5 text-xs hover:bg-white hover:text-black transition">${x.name}</button>`).join('');
-  chips.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click', async()=>{
-      const data=await fetchWeather(b.dataset.lat,b.dataset.lon,b.dataset.name,b.dataset.country);
-      render(data); document.getElementById('searchInput').value=b.dataset.name;
-      showToast(b.dataset.name);
+  chips.textContent='';
+  h.forEach(x=>{
+    const btn=document.createElement('button'); btn.type='button';
+    btn.dataset.lat=x.lat; btn.dataset.lon=x.lon; btn.dataset.name=x.name; btn.dataset.country=x.country;
+    btn.className='historyChip shrink-0 glass rounded-full px-3 py-1.5 text-xs hover:bg-white hover:text-black transition';
+    btn.textContent=x.name;
+    btn.addEventListener('click', async()=>{
+      const data=await fetchWeather(btn.dataset.lat, btn.dataset.lon, btn.dataset.name, btn.dataset.country);
+      render(data); document.getElementById('searchInput').value=btn.dataset.name;
+      showToast(btn.dataset.name);
     });
+    chips.appendChild(btn);
   });
 }
 function renderFavs(){
-  const favs=JSON.parse(localStorage.getItem('nebo_favs')||'[]');
+  let favs=[]; try{ favs=JSON.parse(localStorage.getItem('nebo_favs')||'[]'); }catch{ favs=[]; }
   const bar=document.getElementById('favBar'), chips=document.getElementById('favChips');
   if(!favs.length){bar.classList.add('hidden'); bar.classList.remove('flex'); return}
   bar.classList.remove('hidden'); bar.classList.add('flex');
-  chips.innerHTML=favs.map(x=>`<button data-lat="${x.lat}" data-lon="${x.lon}" data-name="${x.name}" data-country="${x.country}" class="shrink-0 rounded-full px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1" style="background:linear-gradient(135deg,#ff3b82,#8b5cf6)">${x.name} <span class="opacity-60" onclick="event.stopPropagation(); removeFav('${x.name}')">✕</span></button>`).join('');
-  chips.querySelectorAll('button').forEach(b=>{
-    b.addEventListener('click', async()=>{
-      const data=await fetchWeather(b.dataset.lat,b.dataset.lon,b.dataset.name,b.dataset.country);
-      render(data); document.getElementById('searchInput').value=b.dataset.name;
+  chips.textContent='';
+  favs.forEach(x=>{
+    const btn=document.createElement('button'); btn.type='button';
+    btn.dataset.lat=x.lat; btn.dataset.lon=x.lon; btn.dataset.name=x.name; btn.dataset.country=x.country;
+    btn.className='shrink-0 rounded-full px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1'; btn.style.background='linear-gradient(135deg,#ff3b82,#8b5cf6)';
+    const nameSpan=document.createElement('span'); nameSpan.textContent=x.name;
+    const closeSpan=document.createElement('span'); closeSpan.className='opacity-60 hover:opacity-100 px-1'; closeSpan.textContent='✕'; closeSpan.setAttribute('aria-label','Видалити з обраного');
+    closeSpan.addEventListener('click', (e)=>{ e.stopPropagation(); window.removeFav(x.name); });
+    btn.append(nameSpan, closeSpan);
+    btn.addEventListener('click', async()=>{
+      const data=await fetchWeather(btn.dataset.lat, btn.dataset.lon, btn.dataset.name, btn.dataset.country);
+      render(data); document.getElementById('searchInput').value=btn.dataset.name;
     });
+    chips.appendChild(btn);
   });
 }
-function removeFav(name){
-  let favs=JSON.parse(localStorage.getItem('nebo_favs')||'[]');
+window.removeFav = function(name){
+  let favs=[]; try{ favs=JSON.parse(localStorage.getItem('nebo_favs')||'[]'); }catch{ favs=[]; }
   favs=favs.filter(f=>f.name!==name);
-  localStorage.setItem('nebo_favs', JSON.stringify(favs));
+  try{ localStorage.setItem('nebo_favs', JSON.stringify(favs)); }catch(e){ console.warn(e); }
   renderFavs(); showToast('Видалено з обраного');
 }
 async function renderCompare(){
   const cities=[{name:'Київ',lat:50.45,lon:30.52},{name:'Львів',lat:49.84,lon:24.02},{name:'Одеса',lat:46.48,lon:30.72},{name:'Буковель',lat:48.35,lon:24.4}];
   const grid=document.getElementById('compareGrid');
-  grid.innerHTML=cities.map(c=>`<div class="glass rounded-2xl p-4 animate-pulse"><div class="h-4 bg-white/10 rounded w-16"></div><div class="h-8 bg-white/10 rounded w-20 mt-3"></div></div>`).join('');
+  grid.innerHTML=cities.map(()=>`<div class="glass rounded-2xl p-4 animate-pulse"><div class="h-4 bg-white/10 rounded w-16"></div><div class="h-8 bg-white/10 rounded w-20 mt-3"></div></div>`).join('');
   const results=await Promise.all(cities.map(async c=>{
     try{ const d=await fetchWeather(c.lat,c.lon,c.name,'UA'); return d} catch{return null}
   }));
@@ -812,21 +834,26 @@ input.addEventListener('input', e=>{
   searchTimeout=setTimeout(async()=>{
     const cities=await searchCity(q);
     if(!cities.length){results.classList.add('hidden');return}
-    results.innerHTML=cities.map(c=>`
-      <button data-lat="${c.latitude}" data-lon="${c.longitude}" data-name="${c.name}" data-country="${c.country_code}" class="w-full text-left px-5 py-3.5 flex items-center justify-between hover:bg-white hover:text-black transition border-b border-white/5 last:border-0">
-        <span><span class="font-bold">${c.name}</span> <span class="text-sm opacity-60">${c.admin1||''} • ${c.country}</span></span>
-        <span class="text-xs opacity-40">${c.latitude.toFixed(2)}, ${c.longitude.toFixed(2)}</span>
-      </button>
-    `).join('');
-    results.classList.remove('hidden');
-    results.querySelectorAll('button').forEach(btn=>{
+    results.textContent='';
+    cities.forEach(c=>{
+      const btn=document.createElement('button');
+      btn.dataset.lat=c.latitude; btn.dataset.lon=c.longitude; btn.dataset.name=c.name; btn.dataset.country=c.country_code;
+      btn.className='w-full text-left px-5 py-3.5 flex items-center justify-between hover:bg-white hover:text-black transition border-b border-white/5 last:border-0'; btn.type='button';
+      const left=document.createElement('span');
+      const nameSpan=document.createElement('span'); nameSpan.className='font-bold'; nameSpan.textContent=c.name;
+      const adminSpan=document.createElement('span'); adminSpan.className='text-sm opacity-60'; adminSpan.textContent=` ${c.admin1||''} • ${c.country}`;
+      left.append(nameSpan, adminSpan);
+      const right=document.createElement('span'); right.className='text-xs opacity-40'; right.textContent=`${c.latitude.toFixed(2)}, ${c.longitude.toFixed(2)}`;
+      btn.append(left, right);
       btn.addEventListener('click', async()=>{
         results.classList.add('hidden'); input.value=btn.dataset.name;
         showToast('Завантажуємо '+btn.dataset.name+'…');
         const data=await fetchWeather(btn.dataset.lat, btn.dataset.lon, btn.dataset.name, btn.dataset.country);
-        render(data); localStorage.setItem('nebo_city', JSON.stringify({lat:btn.dataset.lat, lon:btn.dataset.lon, name:btn.dataset.name, country:btn.dataset.country}));
+        render(data); try{ localStorage.setItem('nebo_city', JSON.stringify({lat:btn.dataset.lat, lon:btn.dataset.lon, name:btn.dataset.name, country:btn.dataset.country})); }catch{}
       });
+      results.appendChild(btn);
     });
+    results.classList.remove('hidden');
   },350);
 });
 document.getElementById('searchBtn').addEventListener('click', async()=>{
@@ -860,7 +887,7 @@ document.getElementById('locBtn').addEventListener('click',()=>{
       const place=j.results?.[0];
       const name=place?.name||'Моє місце', country=place?.country_code||'UA';
       const data=await fetchWeather(lat,lon,name,country); render(data); input.value=name; showToast('Твоє місце: '+name);
-    } catch(e){
+    } catch{
       const data=await fetchWeather(lat,lon,'Моє місце','UA'); render(data);
     }
   }, ()=> showToast('Дозволь доступ до геолокації'));
@@ -922,7 +949,7 @@ async function initWeather(){
     // wait again if still not ready
     let t2=0; while((!window.Chart || !window.L) && t2<30){ await new Promise(r=>setTimeout(r,100)); t2++; }
     render(data); input.value=init.name;
-  } catch(e){
+  } catch{
     showToast('Помилка завантаження');
   }
 }
