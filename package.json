@@ -1,0 +1,23 @@
+{
+  "name": "nebo-hyper",
+  "version": "5.0.0",
+  "description": "NEBO HYPER — найгарніший прогноз погоди. Vite + Tailwind + Leaflet + Chart.js + GSAP",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "npx htmlhint index.html && npx eslint app.js",
+    "test": "node --test tests/*.test.js",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "eslint": "^9.0.0",
+    "htmlhint": "^1.9.2",
+    "prettier": "^3.3.0"
+  },
+  "keywords": ["weather", "pwa", "vite", "tailwind", "ukraine"],
+  "author": "NEBO",
+  "license": "MIT"
+}
