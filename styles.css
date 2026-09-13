@@ -29,6 +29,7 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
 .shimmer:hover:after{transform:translateX(100%)}
 .tilt{transform-style:preserve-3d;transition:transform .2s}
 .leaflet-container{background:#0a0c12!important;border-radius:16px}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)}
 .cursor-dot{width:6px;height:6px;background:white;border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99999;mix-blend-mode:difference}
 .cursor-ring{width:28px;height:28px;border:1px solid rgba(255,255,255,.4);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:99998;mix-blend-mode:difference;transition:all .15s}
 @media(max-width:768px){.cursor-dot,.cursor-ring{display:none}}
