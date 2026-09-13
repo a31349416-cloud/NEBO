@@ -525,9 +525,8 @@ function updateRadarToggle(){
   if(text) text.textContent = enabled ? 'Вкл' : 'Вимк';
   const radar=mapObj?._radarLayer;
   if(!radar){
-    // keep base map dark as original
     const tilePane=document.querySelector('#map .leaflet-tile-pane');
-    if(tilePane) tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)';
+    if(tilePane) tilePane.style.filter = enabled ? 'invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)' : 'invert(1) hue-rotate(180deg) brightness(0.45) contrast(0.9) grayscale(0.6) blur(0.5px)';
     return;
   }
   radar.setOpacity(enabled ? 0.62 : 0);
@@ -541,11 +540,6 @@ function updateRadarToggle(){
 document.addEventListener('DOMContentLoaded', ()=>{
   const t=document.getElementById('radarToggle');
   if(t) t.addEventListener('change', updateRadarToggle);
-  const lbl=document.getElementById('radarToggleLabel');
-  if(lbl) lbl.addEventListener('click', (e)=>{
-    if(e.target===t) return;
-    e.preventDefault(); t.checked=!t.checked; t.dispatchEvent(new Event('change'));
-  });
 });
 if(document.readyState!=='loading'){
   const t=document.getElementById('radarToggle');
