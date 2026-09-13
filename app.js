@@ -524,16 +524,19 @@ function updateRadarToggle(){
   if(thumb) thumb.style.transform = enabled ? 'translateX(16px)' : 'translateX(0)';
   if(text) text.textContent = enabled ? 'Вкл' : 'Вимк';
   const radar=mapObj?._radarLayer;
+  const mapEl=document.getElementById('map');
+  const tilePane=document.querySelector('#map .leaflet-tile-pane');
+  const overlayPane=document.querySelector('#map .leaflet-overlay-pane');
+  // завжди міняємо видимість карти, навіть без радару — щоб було видно різницю
+  if(mapEl) mapEl.style.opacity = enabled ? '1' : '0.55';
+  if(tilePane) tilePane.style.filter = enabled ? 'invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)' : 'invert(1) hue-rotate(180deg) brightness(0.35) contrast(0.9) grayscale(0.7) blur(0.3px)';
+  if(overlayPane) overlayPane.style.filter='';
   if(!radar){
-    const tilePane=document.querySelector('#map .leaflet-tile-pane');
-    if(tilePane) tilePane.style.filter = enabled ? 'invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)' : 'invert(1) hue-rotate(180deg) brightness(0.45) contrast(0.9) grayscale(0.6) blur(0.5px)';
+    if(enabled) showToast('Радар ввімкнено');
+    else showToast('Радар вимкнено — карта затемнена');
     return;
   }
   radar.setOpacity(enabled ? 0.62 : 0);
-  const tilePane=document.querySelector('#map .leaflet-tile-pane');
-  if(tilePane) tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)';
-  const overlayPane=document.querySelector('#map .leaflet-overlay-pane');
-  if(overlayPane) overlayPane.style.filter='';
   if(enabled) showToast('Радар ввімкнено');
   else showToast('Радар вимкнено — карта чорна');
 }
