@@ -511,78 +511,46 @@ function updateMap(lat,lon, name){
   marker=L.marker([lat,lon]).addTo(mapObj).bindPopup(`<b>${name}</b>`);
   document.getElementById('mapUpdated').textContent=new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
   setTimeout(()=>mapObj.invalidateSize(),300);
-  // apply current map mode after move
-  setTimeout(()=>{ try{ setMapMode(mapMode); }catch{} }, 400);
+  // apply toggle state
+  setTimeout(()=>{ try{ updateRadarToggle(); }catch{} }, 400);
 }
-let mapMode='all';
-function setMapMode(mode){
-  mapMode=mode;
-  document.querySelectorAll('.mapModeBtn').forEach(b=>{
-    const active=b.dataset.mode===mode;
-    b.classList.toggle('bg-white', active);
-    b.classList.toggle('text-black', active);
-    b.classList.toggle('font-bold', active);
-    b.classList.toggle('active', active);
-  });
-  const label=document.getElementById('mapModeLabel');
-  if(label) label.textContent = mode==='all' ? 'Всі опади' : mode==='rain' ? 'Тільки дощ' : mode==='snow' ? 'Тільки сніг' : 'Вимкнено';
-  // update toggle visual
+function updateRadarToggle(){
   const toggle=document.getElementById('radarToggle');
   const track=document.getElementById('radarToggleTrack');
   const thumb=document.getElementById('radarToggleThumb');
+  const text=document.getElementById('radarToggleText');
   const enabled = toggle ? toggle.checked : true;
   if(track) track.style.background = enabled ? '#3b82f6' : 'rgba(255,255,255,0.2)';
   if(thumb) thumb.style.transform = enabled ? 'translateX(16px)' : 'translateX(0)';
+  if(text) text.textContent = enabled ? 'Вкл' : 'Вимк';
   const radar=mapObj?._radarLayer;
-  // demo tint for map even when no precipitation — so mode change is visible
-  const tilePane=document.querySelector('#map .leaflet-tile-pane');
-  const overlayPane=document.querySelector('#map .leaflet-overlay-pane');
-  if(tilePane){
-    if(!enabled || mode==='off'){
-      tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.55) contrast(1.0) grayscale(0.3)';
-      if(overlayPane) overlayPane.style.filter='';
-    } else if(mode==='rain'){
-      tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2) hue-rotate(190deg) saturate(1.3)';
-      if(overlayPane) overlayPane.style.filter='hue-rotate(205deg) saturate(1.6) brightness(1.05)';
-    } else if(mode==='snow'){
-      tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(1.05) contrast(1.15) grayscale(0.15) sepia(0.08)';
-      if(overlayPane) overlayPane.style.filter='brightness(1.45) contrast(1.15) saturate(0.4) sepia(0.15) hue-rotate(10deg)';
-    } else {
-      tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)';
-      if(overlayPane) overlayPane.style.filter='';
-    }
-  }
-  if(!radar) return;
-  if(mode==='off' || !enabled){
-    radar.setOpacity(0);
-    showToast(mode==='off' ? 'Радар вимкнено' : 'Радар вимкнено перемикачем');
+  if(!radar){
+    // keep base map dark as original
+    const tilePane=document.querySelector('#map .leaflet-tile-pane');
+    if(tilePane) tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)';
     return;
   }
-  let opacity=0.62;
-  if(mode==='rain') opacity=0.78;
-  else if(mode==='snow') opacity=0.70;
-  else opacity=0.62;
-  radar.setOpacity(opacity);
-  showToast(label ? label.textContent : mode);
+  radar.setOpacity(enabled ? 0.62 : 0);
+  const tilePane=document.querySelector('#map .leaflet-tile-pane');
+  if(tilePane) tilePane.style.filter='invert(1) hue-rotate(180deg) brightness(0.85) contrast(1.1) grayscale(0.2)';
+  const overlayPane=document.querySelector('#map .leaflet-overlay-pane');
+  if(overlayPane) overlayPane.style.filter='';
+  if(enabled) showToast('Радар ввімкнено');
+  else showToast('Радар вимкнено — карта чорна');
 }
-// listeners for map modes — robust, works even if DOM already loaded
-function initMapModes(){
-  document.querySelectorAll('.mapModeBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=> setMapMode(btn.dataset.mode));
-  });
+document.addEventListener('DOMContentLoaded', ()=>{
   const t=document.getElementById('radarToggle');
-  if(t){
-    t.addEventListener('change', ()=> setMapMode(mapMode));
-    // also allow clicking the label
-    const lbl=document.getElementById('radarToggleLabel');
-    if(lbl) lbl.addEventListener('click', (e)=>{
-      if(e.target===t) return;
-      e.preventDefault(); t.checked=!t.checked; t.dispatchEvent(new Event('change'));
-    });
-  }
+  if(t) t.addEventListener('change', updateRadarToggle);
+  const lbl=document.getElementById('radarToggleLabel');
+  if(lbl) lbl.addEventListener('click', (e)=>{
+    if(e.target===t) return;
+    e.preventDefault(); t.checked=!t.checked; t.dispatchEvent(new Event('change'));
+  });
+});
+if(document.readyState!=='loading'){
+  const t=document.getElementById('radarToggle');
+  if(t) t.addEventListener('change', updateRadarToggle);
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initMapModes);
-else initMapModes();
 
 const input=document.getElementById('searchInput'), results=document.getElementById('searchResults');
 let searchTimeout;
