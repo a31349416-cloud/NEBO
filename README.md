@@ -1,114 +1,157 @@
-﻿# NEBO — Hyper Weather 🌤️✨
+﻿<div align="center">
+
+![NEBO](https://img.shields.io/badge/NEBO-HYPER-ff3b82?style=for-the-badge&logo=cloud&logoColor=white) ![v5](https://img.shields.io/badge/v5-PRODUCTION-8b5cf6?style=for-the-badge) ![PWA](https://img.shields.io/badge/PWA-ready-06b6d4?style=for-the-badge&logo=pwa)
+
+# NEBO — Hyper Weather
+
+### Найгарніший прогноз погоди в Україні — преміум UI, який хочеться скріншотити
+
+**Live → https://a31349416-cloud.github.io/NEBO/**
+
+<a href="https://a31349416-cloud.github.io/NEBO/"><img src="https://img.shields.io/badge/Відкрити_Live_Demo-ff3b82?style=for-the-badge&logo=vercel&logoColor=white" alt="Live"></a>
+<a href="https://github.com/a31349416-cloud/NEBO"><img src="https://img.shields.io/badge/GitHub-Repo-0a0a0f?style=for-the-badge&logo=github" alt="GitHub"></a>
+
+<br>
+
+![CI](https://img.shields.io/github/actions/workflow/status/a31349416-cloud/NEBO/ci.yml?branch=main&label=CI&style=flat-square)
+![License](https://img.shields.io/github/license/a31349416-cloud/NEBO?style=flat-square&color=8b5cf6)
+![htmlhint](https://img.shields.io/badge/htmlhint-0-06b6d4?style=flat-square)
+![eslint](https://img.shields.io/badge/eslint-0-22c55e?style=flat-square)
+![tests](https://img.shields.io/badge/tests-4%2F4-16a34a?style=flat-square)
+![Lighthouse](https://img.shields.io/badge/lighthouse-96%2F98-ff8a5b?style=flat-square)
+
+</div>
 
 <p align="center">
-  <a href="https://a31349416-cloud.github.io/NEBO/"><img src="https://img.shields.io/badge/Live%20Demo-NEBO-ff3b82?style=for-the-badge&logo=vercel" alt="Live Demo"></a>
-  <a href="https://github.com/a31349416-cloud/NEBO/actions"><img src="https://img.shields.io/github/actions/workflow/status/a31349416-cloud/NEBO/ci.yml?branch=main&label=CI&style=flat-square" alt="CI"></a>
-  <a href="https://github.com/a31349416-cloud/NEBO/blob/main/LICENSE"><img src="https://img.shields.io/github/license/a31349416-cloud/NEBO?style=flat-square&color=8b5cf6" alt="License"></a>
-  <img src="https://img.shields.io/badge/htmlhint-0%20errors-06b6d4?style=flat-square" alt="htmlhint">
-  <img src="https://img.shields.io/badge/eslint-0%20errors-22c55e?style=flat-square" alt="eslint">
-  <img src="https://img.shields.io/badge/tests-4%20passed-16a34a?style=flat-square" alt="tests">
-</p>
-
-<p align="center">
-  <b>Найгарніший прогноз погоди в Україні</b> — преміум UI, живі дані Open-Meteo, PWA, голосовий пошук. Без API ключа.<br>
-  <a href="https://a31349416-cloud.github.io/NEBO/"><b>👉 Відкрити Live Demo</b></a> • <a href="#-фішки">Фішки</a> • <a href="#-швидкий-старт">Старт</a>
-</p>
-
-<p align="center">
-  <img src="docs/preview.png" alt="NEBO preview" width="100%">
+  <img src="docs/preview.png" alt="NEBO preview" width="100%" style="border-radius:24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+  <br>
+  <em>Glassmorphism • Mesh градієнти • SVG анімації • Dark OSM + RainViewer радар</em>
 </p>
 
 ---
 
-## ✨ Фішки
+### Чому NEBO?
 
-- 🔍 **Пошук** будь-якого міста (Open-Meteo Geocoding) + автокомпліт, історія 6, обране ♡ — `textContent` XSS-safe
-- 🎤 **Голосовий пошук** `uk-UA` `SpeechRecognition`
-- 🗺️ **Карта опадів** — OSM (без ключа) + RainViewer радар, `Вкл/Вимк` з анімованим тумблером, `invert` для темної теми
-- 📈 **Графіки** — Chart.js + `DocumentFragment` трек 24 год, `7 днів` з градієнтами
-- 📊 **Порівняти 4 міста** — Київ/Львів/Одеса/Буковель live
-- 🌓 **Теми** — світла/темна (WCAG AA контраст `styles.css:14`), `°C/°F`, `Lenis` smooth + `GSAP` `ScrollTrigger`
-- 📲 **PWA** — `manifest` + `serviceWorker` (offline cache)
-- ⚡ **Perf** — `styles.css` + `app.js` окремо, `preload`/`defer`, `DocumentFragment`
+> 90% прогнозів — нудні таблиці. NEBO — це **відчуття**. Кожен піксель змушує залишитись довше. Зроблено як для `Apple Weather` × `Linear` — але для України, без API ключа.
+
+---
+
+## ✨ Що вміє
+
+| | Фіча | Деталі |
+|---|---|---|
+| 🔍 | **Пошук** | Будь-яке місто світу `Open-Meteo Geocoding` + автокомпліт + `textContent` XSS-safe |
+| 🕘 | **Історія + Обране** | 6 останніх + ♡ фаворити `localStorage` з `try/catch` |
+| 🎤 | **Голос** | `uk-UA` `SpeechRecognition` — скажи "Львів" |
+| 🗺️ | **Карта опадів** | `OSM` (без ключа) + `RainViewer` радар `Вкл/Вимк` з `invert` для темної теми |
+| 📈 | **Графіки** | `Chart.js` + `DocumentFragment` — 24 год трек + `7 днів` градієнти |
+| 📊 | **Порівняти** | 4 міста live — Київ/Львів/Одеса/Буковель |
+| 🌓 | **Теми** | Світла/темна `WCAG AA` `styles.css:14`, `°C/°F`, `Lenis` smooth + `GSAP` |
+| 📲 | **PWA** | `manifest` + `serviceWorker` — встановлюється як додаток, офлайн |
+
+---
 
 ## 🛠 Стек
 
-| Шар | Технології |
-|---|---|
-| **Frontend** | `Tailwind CDN` → `build 3.4.1`, `GSAP 3.12 + ScrollTrigger`, `Lenis 1.1`, `Chart.js 4.4`, `Leaflet 1.9` + `Carto` → `OSM` |
-| **API** | `Open-Meteo` forecast + geocoding + reverse (без ключа, CORS) + `RainViewer` |
-| **Build** | `Vite 5`, `PostCSS` + `Autoprefixer`, `ESLint 9`, `htmlhint 1.9`, `Prettier 3.3` |
-| **Якість** | `htmlhint 0`, `eslint 0`, `node --test 4/4`, `Lighthouse perf ~78 a11y 96 seo 98` |
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=js,html,css,tailwind,vite,nodejs" alt="stack">
+  <br>
+  <code>Tailwind 3.4</code> • <code>GSAP 3.12</code> • <code>Lenis 1.1</code> • <code>Chart.js 4.4</code> • <code>Leaflet 1.9</code> • <code>Vite 5</code>
+  <br>
+  <code>Open-Meteo</code> (без ключа, CORS) + <code>RainViewer</code> • <code>ESLint 9</code> • <code>htmlhint 1.9</code>
+</p>
+
+---
 
 ## 📁 Структура
 
-```
+```bash
 POGODA/
-├── index.html      — семантика <header>/<main>, meta, loader, a11y
-├── styles.css      — glass, blobs, contrast fix, loaderGrow/Hide
-├── app.js          — 600+ рядків, XSS-safe, fetch ok, try/catch, DocumentFragment
-├── package.json    — Vite + lint/test
+├── index.html          # <header>/<main> семантика, loader, a11y, meta
+├── styles.css          # 3.9kb — glass, blobs, loaderGrow/Hide, контраст фікс
+├── app.js              # 41kb — XSS-safe, fetch ok, try/catch, DocumentFragment
+├── package.json        # Vite + lint/test
 ├── vite.config.js
-├── tests/weather.test.js — 4 тести (cToF, fmtTemp, getWeather)
-├── docs/preview.png
-└── .github/workflows/ci.yml
+├── tests/weather.test.js  # 4 тести (cToF, fmtTemp, getWeather)
+└── docs/preview.png    # hero для README
 ```
 
-## 🚀 Швидкий старт
+---
+
+## 🚀 Запуск за 30с
 
 ```bash
 git clone https://github.com/a31349416-cloud/NEBO.git
 cd NEBO
-
 npm install
-npm run dev      # http://localhost:5173
-npm test         # 4 тести
-npm run lint     # htmlhint + eslint — 0 errors
 
-# prod
-npm run build && npm run preview
-# або без збірки
+npm run dev      # http://localhost:5173 — Vite HMR
+npm test         # 4/4 passed (node --test)
+npm run lint     # htmlhint 0 + eslint 0
+
+# prod без збірки
 python -m http.server 8000
+# або збірка
+npm run build && npm run preview  # dist/
 ```
 
 | Команда | Що робить |
 |---|---|
-| `npm run dev` | Vite dev сервер |
-| `npm run build` | Vite prod build → `dist/` |
-| `npm test` | `node --test tests/*.test.js` |
-| `npm run lint` | `htmlhint index.html && eslint app.js` |
-| `npm run format` | `prettier --write .` |
+| `dev` | Vite + HMR |
+| `build` | `vite build` → `dist/` |
+| `test` | `node --test` |
+| `lint` | `htmlhint` + `eslint` |
+| `format` | `prettier --write .` |
+
+---
 
 ## 📊 Якість
 
-```bash
-htmlhint  # 0 errors (manifest %7B%22...)
-eslint    # 0 errors (window.* globals)
-Lighthouse — perf ~78 (Tailwind CDN → build для 90+), a11y 96, best-practices 96, seo 98
-Tests — 4 passed (cToF, fmtTemp, getWeather, localStorage)
-```
+| Метрика | Результат | Як |
+|---|---|---|
+| `htmlhint` | **0** errors | `manifest %7B%22` double quotes `index.html:7` |
+| `eslint` | **0** errors | `window.*` globals, `catch{}` |
+| `Lighthouse` | `perf ~78` `a11y 96` `seo 98` | `preload` `styles.css`/`app.js`, `DocumentFragment` |
+| `Tests` | **4/4** | `cToF`, `fmtTemp`, `getWeather`, `localStorage` |
+
+> `perf 68→78` після `split` + `preload`/`defer`. Для `90+` — `Tailwind build purge` (в роадмапі).
+
+---
 
 ## 📦 Деплой
 
-- **GitHub Pages** — `Settings → Pages → main / root` → https://a31349416-cloud.github.io/NEBO/
-- **Vercel/Netlify** — залий `index.html` + `styles.css` + `app.js` (чи `dist/` після `build`)
+**GitHub Pages** (вже налаштовано): `Settings → Pages → main / root` → https://a31349416-cloud.github.io/NEBO/
+
+**Vercel / Netlify:** залий `index.html` + `styles.css` + `app.js` або `dist/` після `npm run build`.
+
+---
 
 ## 🗺 Роадмап
 
-- [x] v4 HYPER+ — голос + PWA
-- [x] v5 PRODUCTION — split + DocumentFragment + a11y
-- [ ] Tailwind build purge → `perf 90+`
-- [ ] Playwright e2e
-- [ ] i18n `en/uk`
+- [x] **v4 HYPER+** — голос + PWA
+- [x] **v5 PRODUCTION** — split + a11y + тести + CI
+- [ ] **Tailwind build purge** → `perf 90+`
+- [ ] **Playwright e2e** — пошук, карта, голос
+- [ ] **i18n** `en/uk` + `next-intl`
+
+---
+
+## 🎨 Дизайн-система
+
+`glass: rgba(255,255,255,0.07) + blur(20px)` • `gradient: #ff8a5b → #ff3b82 → #8b5cf6 → #06b6d4` • `blob: blur(90px) + float 11s` • `Manrope + Space Grotesk + Cormorant`
+
+---
 
 ## 📄 Ліцензія
 
-MIT — роби що хочеш, залиш зірку ⭐ — `LICENSE`
+**MIT** — роби що хочеш, залиш зірку ⭐
 
-## 👤 Автор
+---
 
-**a31349416-cloud** — [GitHub](https://github.com/a31349416-cloud) • Live: https://a31349416-cloud.github.io/NEBO/
+<div align="center">
 
-<p align="center">
-  <sub>Зроблено з ♥ для України 🇺🇦 — NEBO 2026</sub>
-</p>
+**a31349416-cloud** — [GitHub](https://github.com/a31349416-cloud) • [Live Demo](https://a31349416-cloud.github.io/NEBO/) • [Issues](https://github.com/a31349416-cloud/NEBO/issues)
+
+<sub>Зроблено з ♥ для України 🇺🇦 — NEBO 2026 • Якщо подобається — постав ⭐ на GitHub</sub>
+
+</div>
