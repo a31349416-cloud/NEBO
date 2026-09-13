@@ -72,19 +72,19 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
 
 <div class="fixed top-0 left-0 w-full h-[2px] z-[100] bg-white/10"><div id="progress" class="h-full w-full origin-left scale-x-0" style="background:linear-gradient(90deg,#ff8a5b,#ff3b82,#8b5cf6,#06b6d4)"></div></div>
 
-<div id="loader" class="fixed inset-0 z-[999] bg-[#05070a] flex flex-col items-center justify-center">
-  <div class="absolute inset-0 overflow-hidden opacity-30">
+<div id="loader" class="fixed inset-0 z-[999] bg-[#05070a] flex flex-col items-center justify-center px-6 overflow-hidden">
+  <div class="absolute inset-0 overflow-hidden opacity-30 pointer-events-none">
     <div class="blob w-[620px] h-[620px] bg-[#ff3b82] -top-32 -left-32" style="animation:float 8s ease infinite"></div>
     <div class="blob w-[720px] h-[720px] bg-[#8b5cf6] -bottom-32 -right-32" style="animation:float2 10s ease infinite"></div>
   </div>
-  <div class="relative text-center">
-    <div class="font-display font-bold text-[15vw] md:text-[8.5vw] leading-none tracking-[-0.06em] flex items-baseline justify-center gap-3">NEBO<span class="font-serif italic font-light gradient-text">hyper</span></div>
-    <div class="mt-1 font-display text-[11px] tracking-[0.42em] text-white/35">V3 • HYPER EDITION • 2026</div>
+  <div class="relative text-center w-full max-w-[900px] overflow-visible">
+    <div class="font-display font-bold text-[13vw] md:text-[7.5vw] leading-none tracking-[-0.05em] flex items-baseline justify-center gap-2 md:gap-3 overflow-visible px-2">NEBO<span class="font-serif italic font-light gradient-text pr-4 md:pr-8">hyper</span></div>
+    <div class="mt-2 font-display text-[11px] tracking-[0.42em] text-white/35">V3 • HYPER EDITION • 2026</div>
     <div class="mt-8 inline-flex items-center gap-3 glass rounded-full px-5 py-2 text-xs tracking-[0.22em] text-white/70">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ЗАВАНТАЖУЄМО НЕБО
       <span id="loaderPct" class="font-bold text-white">00%</span>
     </div>
-    <div class="mt-4 h-[2px] w-80 mx-auto bg-white/10 overflow-hidden rounded-full"><div id="loaderBar" class="h-full w-full origin-left scale-x-0" style="background:linear-gradient(90deg,#ff8a5b,#ff3b82,#8b5cf6)"></div></div>
+    <div class="mt-4 h-[2px] w-80 max-w-[85vw] mx-auto bg-white/10 overflow-hidden rounded-full"><div id="loaderBar" class="h-full w-full origin-left scale-x-0" style="background:linear-gradient(90deg,#ff8a5b,#ff3b82,#8b5cf6);transform-origin:left"></div></div>
   </div>
 </div>
 
@@ -315,44 +315,73 @@ body.light .text-white\/40{color:rgba(0,0,0,.38)!important}
 <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white text-black px-6 py-3 rounded-full font-bold shadow-2xl translate-y-20 opacity-0 transition-all z-50 flex items-center gap-2"><span>✦</span><span id="toastText">Місто знайдено</span></div>
 
 <script>
-gsap.registerPlugin(ScrollTrigger);
-const lenis = new Lenis({duration:1.1, easing:t=>Math.min(1,1.001-Math.pow(2,-10*t))});
-function raf(t){lenis.raf(t);requestAnimationFrame(raf)}requestAnimationFrame(raf);
-lenis.on('scroll',ScrollTrigger.update);
-gsap.ticker.add(t=>lenis.raf(t*1000));
-gsap.ticker.lagSmoothing(0);
-let p=0; const loaderBar=document.getElementById('loaderBar'), loaderPct=document.getElementById('loaderPct');
+let lenis=null;
+try{
+  gsap.registerPlugin(ScrollTrigger);
+  lenis = new Lenis({duration:1.1, easing:t=>Math.min(1,1.001-Math.pow(2,-10*t))});
+  function raf(t){lenis.raf(t);requestAnimationFrame(raf)}requestAnimationFrame(raf);
+  lenis.on('scroll',ScrollTrigger.update);
+  gsap.ticker.add(t=>lenis.raf(t*1000));
+  gsap.ticker.lagSmoothing(0);
+}catch(e){ console.warn('GSAP/Lenis not ready',e); }
+let p=0; const loaderBar=document.getElementById('loaderBar'), loaderPct=document.getElementById('loaderPct'), loaderEl=document.getElementById('loader');
+function setLoaderProgress(val){
+  loaderPct.textContent=String(Math.floor(val)).padStart(2,'0')+'%';
+  loaderBar.style.transform=`scaleX(${val/100})`;
+  try{ gsap.to(loaderBar,{scaleX:val/100,duration:.2,overwrite:true}) }catch(e){}
+}
+function hideLoader(){
+  setLoaderProgress(100);
+  loaderPct.textContent='100%';
+  setTimeout(()=>{
+    try{
+      gsap.to('#loader',{yPercent:-100,duration:0.9, ease:'expo.inOut'});
+      gsap.from('#nav',{y:-20,opacity:0,duration:.7,delay:.4});
+      gsap.from('main > section',{y:24,opacity:0,duration:.7,stagger:.06,delay:.5, ease:'power3.out'});
+    }catch(e){
+      loaderEl.style.transition='transform 0.8s cubic-bezier(0.9,0,0.1,1)';
+      loaderEl.style.transform='translateY(-100%)';
+    }
+    setTimeout(()=>{ loaderEl.style.display='none'; }, 1000);
+  }, 200);
+}
 const iv=setInterval(()=>{
-  p+=Math.random()*20;
-  if(p>=100){p=100;clearInterval(iv);
-    loaderPct.textContent='100%'; gsap.to(loaderBar,{scaleX:1,duration:.3});
-    gsap.to('#loader',{yPercent:-100,duration:1, ease:'expo.inOut', delay:.2});
-    gsap.from('#nav',{y:-20,opacity:0,duration:.7,delay:.9});
-    gsap.from('main > section',{y:30,opacity:0,duration:.8,stagger:.07,delay:1, ease:'power3.out'});
-  } else {loaderPct.textContent=String(Math.floor(p)).padStart(2,'0')+'%'; gsap.to(loaderBar,{scaleX:p/100,duration:.2,overwrite:true})}
+  p+=Math.random()*16+6;
+  if(p>=100){p=100;clearInterval(iv); hideLoader();}
+  else { setLoaderProgress(p); }
 },110);
-gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:'body',start:'top top',end:'bottom bottom',scrub:.3}});
-const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
-window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;gsap.to(dot,{x:mx-3,y:my-3,duration:.08})});
-gsap.ticker.add(()=>{rx+=(mx-rx)*0.15;ry+=(my-ry)*0.15;ring.style.transform=`translate(${rx-14}px,${ry-14}px)`});
-document.querySelectorAll('a,button').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{gsap.to(ring,{scale:1.6,duration:.2}); gsap.to(dot,{scale:1.8,duration:.2})});
-  el.addEventListener('mouseleave',()=>{gsap.to(ring,{scale:1,duration:.2}); gsap.to(dot,{scale:1,duration:.2})});
-});
+// safety — hide anyway after 2.8s if stuck
+setTimeout(()=>{ if(p<100){ clearInterval(iv); hideLoader(); } }, 2800);
+try{ gsap.to('#progress',{scaleX:1,ease:'none',scrollTrigger:{trigger:'body',start:'top top',end:'bottom bottom',scrub:.3}})}catch(e){
+  window.addEventListener('scroll',()=>{
+    const sc=window.scrollY / (document.body.scrollHeight - innerHeight);
+    document.getElementById('progress').style.transform=`scaleX(${sc})`;
+  });
+}
+try{
+  const dot=document.getElementById('cursorDot'), ring=document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;try{gsap.to(dot,{x:mx-3,y:my-3,duration:.08})}catch{dot.style.transform=`translate(${mx-3}px,${my-3}px)`}});
+  try{ gsap.ticker.add(()=>{rx+=(mx-rx)*0.15;ry+=(my-ry)*0.15;ring.style.transform=`translate(${rx-14}px,${ry-14}px)`}); }catch{}
+  document.querySelectorAll('a,button').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{try{gsap.to(ring,{scale:1.6,duration:.2}); gsap.to(dot,{scale:1.8,duration:.2})}catch{}});
+    el.addEventListener('mouseleave',()=>{try{gsap.to(ring,{scale:1,duration:.2}); gsap.to(dot,{scale:1,duration:.2})}catch{}});
+  });
+}catch(e){}
 document.getElementById('themeBtn').addEventListener('click',()=>{
   document.body.classList.toggle('light');
   const isLight=document.body.classList.contains('light');
   document.getElementById('bg').style.background=isLight?'#f1f0ee':'#05070a';
   showToast(isLight?'Світла тема ☀️':'Темна тема 🌙');
 });
-// tilt
-const tiltCard=document.getElementById('tiltCard');
-tiltCard.addEventListener('mousemove',e=>{
-  const r=tiltCard.getBoundingClientRect(); const x=(e.clientX - r.left)/r.width -0.5; const y=(e.clientY - r.top)/r.height -0.5;
-  gsap.to(tiltCard,{rotationY:x*6, rotationX:-y*6, duration:.5, transformPerspective:1000});
-});
-tiltCard.addEventListener('mouseleave',()=> gsap.to(tiltCard,{rotationY:0, rotationX:0, duration:.7}));
+try{
+  const tiltCard=document.getElementById('tiltCard');
+  tiltCard.addEventListener('mousemove',e=>{
+    const r=tiltCard.getBoundingClientRect(); const x=(e.clientX - r.left)/r.width -0.5; const y=(e.clientY - r.top)/r.height -0.5;
+    gsap.to(tiltCard,{rotationY:x*6, rotationX:-y*6, duration:.5, transformPerspective:1000});
+  });
+  tiltCard.addEventListener('mouseleave',()=> gsap.to(tiltCard,{rotationY:0, rotationX:0, duration:.7}));
+}catch(e){}
 // mesh canvas - subtle gradient mesh
 const mesh=document.getElementById('meshCanvas'), mctx=mesh.getContext('2d');
 function resizeMesh(){mesh.width=innerWidth; mesh.height=innerHeight}
